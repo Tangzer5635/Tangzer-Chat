@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: Chat-Tangzer
+
+app:
+  security:
+    jwt:
+      secret: chat-tangzer-secret-key-very-long-at-least-64-characters-long-for-security
+      expiration: 900000
