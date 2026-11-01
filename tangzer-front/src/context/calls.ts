@@ -15,6 +15,12 @@ export interface CallContextValue {
     connecting: boolean;
     muted: boolean;
     deafened: boolean;
+    /** Ma caméra est allumée. */
+    video: boolean;
+    /** Je partage mon écran. */
+    screen: boolean;
+    /** Le navigateur sait partager l'écran (pas sur mobile). */
+    screenShareSupported: boolean;
     /** Identifiants des personnes en train de parler (moi compris). */
     speaking: Set<number>;
     incoming: IncomingCall | null;
@@ -24,6 +30,10 @@ export interface CallContextValue {
     leave: () => void;
     toggleMute: () => void;
     toggleDeafen: () => void;
+    toggleCamera: () => Promise<void>;
+    toggleScreen: () => Promise<void>;
+    /** Flux à afficher pour un participant (le mien = ma caméra ou mon écran). */
+    streamOf: (userId: number) => MediaStream | null;
     acceptIncoming: () => void;
     declineIncoming: () => void;
 }

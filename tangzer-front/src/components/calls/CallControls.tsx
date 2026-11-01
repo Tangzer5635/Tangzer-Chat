@@ -1,8 +1,11 @@
 import { useCalls } from "../../context/calls";
 
-/** Micro, casque, raccrocher. */
+/** Micro, casque, caméra, partage d'écran, raccrocher. */
 export default function CallControls({ large = false }: { large?: boolean }) {
-    const { muted, deafened, toggleMute, toggleDeafen, leave } = useCalls();
+    const {
+        muted, deafened, video, screen, screenShareSupported,
+        toggleMute, toggleDeafen, toggleCamera, toggleScreen, leave,
+    } = useCalls();
     const size = large ? "call-button large" : "call-button";
 
     return (
@@ -23,6 +26,24 @@ export default function CallControls({ large = false }: { large?: boolean }) {
             >
                 {deafened ? "🙉" : "🎧"}
             </button>
+            <button
+                className={video ? `${size} on` : size}
+                onClick={() => void toggleCamera()}
+                title={video ? "Éteindre la caméra" : "Allumer la caméra"}
+                aria-pressed={video}
+            >
+                📷
+            </button>
+            {screenShareSupported && (
+                <button
+                    className={screen ? `${size} on` : size}
+                    onClick={() => void toggleScreen()}
+                    title={screen ? "Arrêter le partage d'écran" : "Partager mon écran"}
+                    aria-pressed={screen}
+                >
+                    🖥️
+                </button>
+            )}
             <button className={`${size} hang-up`} onClick={leave} title="Raccrocher">
                 <span>📞</span>
             </button>

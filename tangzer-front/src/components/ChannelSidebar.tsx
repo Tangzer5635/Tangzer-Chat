@@ -188,6 +188,8 @@ export default function ChannelSidebar({ server }: { server: Server }) {
                             >
                                 <Avatar user={participant.user} size={24} />
                                 <span className="voice-member-name">{participant.user.displayName}</span>
+                                {participant.screen && <span className="live-badge">EN DIRECT</span>}
+                                {participant.video && <small>📷</small>}
                                 {participant.deafened ? <small>🙉</small> : participant.muted ? <small>🔇</small> : null}
                             </div>
                         ))}

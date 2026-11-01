@@ -25,9 +25,11 @@ La feuille de route complète est dans [`docs/ROADMAP.md`](docs/ROADMAP.md).
 - **Photos** : bouton +, glisser-déposer ou coller une capture d'écran ; aperçu et progression
   avant l'envoi ; jusqu'à 4 images (PNG, JPEG, GIF, WEBP, 10 Mo) par message ; grille et
   visionneuse plein écran. Le serveur vérifie le vrai type du fichier, pas son nom.
-- **Appels audio** : salons vocaux (à plusieurs) et appels en message privé avec sonnerie,
-  accepter/refuser, micro et casque coupables, indicateur de qui parle, sons d'arrivée/départ.
-  Le son va directement d'un navigateur à l'autre (WebRTC), le serveur ne fait que mettre en relation.
+- **Appels audio et vidéo** : salons vocaux (à plusieurs) et appels en message privé avec sonnerie,
+  accepter/refuser, micro et casque coupables, indicateur de qui parle, sons d'arrivée/départ,
+  **caméra** et **partage d'écran**, grille vidéo, tuile agrandie au clic, plein écran.
+  Le son et l'image vont directement d'un navigateur à l'autre (WebRTC), le serveur ne fait
+  que mettre en relation. Conçu pour de petits groupes (chacun est relié à chacun).
 - **Présence** : en ligne, inactif (automatique après 5 min), ne pas déranger (plus de
   notifications), invisible ; statut personnalisé (« 🎮 En partie ») ; plusieurs onglets gérés ;
   membres hors ligne regroupés et grisés.

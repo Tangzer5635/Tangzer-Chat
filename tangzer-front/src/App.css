@@ -2054,10 +2054,9 @@ button:disabled {
 
 .call-tiles {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 12px;
     width: 100%;
-    max-width: 900px;
+    max-width: 1100px;
 }
 
 .call-tile {
@@ -2080,6 +2079,103 @@ button:disabled {
 
 .call-tile.speaking .avatar {
     box-shadow: 0 0 0 4px var(--success);
+}
+
+.call-tile {
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.call-tile.with-video {
+    padding: 0;
+    background: #000;
+}
+
+.call-tile video {
+    width: 100%;
+    height: 100%;
+    min-height: 180px;
+    max-height: 60vh;
+    object-fit: contain;
+    background: #000;
+}
+
+.call-tile video.mirrored {
+    transform: scaleX(-1);
+}
+
+.call-tile.with-video .call-tile-name {
+    position: absolute;
+    left: 8px;
+    bottom: 8px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.6);
+    font-size: 13px;
+}
+
+.call-tile-fullscreen {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: none;
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    font-size: 18px;
+}
+
+.call-tile:hover .call-tile-fullscreen {
+    display: block;
+}
+
+.call-tile:fullscreen video {
+    max-height: none;
+}
+
+.call-focus {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    max-width: 1100px;
+}
+
+.call-focus-main .call-tile {
+    min-height: 320px;
+}
+
+.call-focus-main .call-tile video {
+    max-height: 65vh;
+}
+
+.call-focus-strip {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+}
+
+.call-focus-strip .call-tile {
+    flex: 0 0 180px;
+    min-height: 110px;
+}
+
+.call-focus-strip .call-tile video {
+    min-height: 110px;
+}
+
+.call-focus-strip .avatar {
+    width: 48px !important;
+    height: 48px !important;
+    font-size: 20px !important;
+}
+
+.call-button.on {
+    background: var(--accent);
 }
 
 .call-tile-name {
@@ -2153,6 +2249,15 @@ button:disabled {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.live-badge {
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: var(--danger);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 800;
 }
 
 .voice-member.speaking .avatar {
