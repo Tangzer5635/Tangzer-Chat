@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 
 import ChannelSidebar from "../components/ChannelSidebar";
-import ChannelView from "../components/ChannelView";
+import ChannelView from "../components/chat/ChannelView";
 import MemberList from "../components/MemberList";
 import { useServers } from "../context/servers";
 import { getLastChannel, rememberChannel } from "../lib/lastVisited";
+import { canManageServer } from "../lib/permissions";
 
 const MEMBERS_KEY = "tangzer.showMembers";
 
@@ -59,7 +60,13 @@ export default function ServerPage() {
     return (
         <>
             <ChannelSidebar server={server} />
-            <ChannelView key={channel.id} channel={channel} membersVisible={showMembers} onToggleMembers={toggleMembers} />
+            <ChannelView
+                key={channel.id}
+                channel={channel}
+                canModerate={canManageServer(server.myRole)}
+                membersVisible={showMembers}
+                onToggleMembers={toggleMembers}
+            />
             {showMembers && <MemberList server={server} />}
         </>
     );

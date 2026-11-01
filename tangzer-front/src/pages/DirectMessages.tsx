@@ -7,7 +7,7 @@ import UserPanel from "../components/UserPanel";
 import { useAuth } from "../context/auth";
 import { useDirectMessages } from "../context/directMessages";
 import { randomId } from "../lib/id";
-import { formatTime } from "../lib/messages";
+import { formatTime } from "../lib/messageRows";
 import { sendPrivateMessage, sendReadReceipt, sendTyping } from "../realtime/directMessages";
 import type { DirectMessage, User } from "../types/api";
 

@@ -4,6 +4,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { leaveServer } from "../api/servers";
 import { useServers } from "../context/servers";
 import { useToasts } from "../context/toasts";
+import { useUnread } from "../context/unread";
 import { canManageServer } from "../lib/permissions";
 import type { Channel, Server } from "../types/api";
 import ChannelModal from "./modals/ChannelModal";
@@ -23,6 +24,7 @@ export default function ChannelSidebar({ server }: { server: Server }) {
     const navigate = useNavigate();
     const { dispatch } = useServers();
     const { pushToast } = useToasts();
+    const { counts, mentions } = useUnread();
 
     const [menuOpen, setMenuOpen] = useState(false);
     const [modal, setModal] = useState<OpenModal>(null);
@@ -115,10 +117,15 @@ export default function ChannelSidebar({ server }: { server: Server }) {
                     <NavLink
                         key={channel.id}
                         to={`/app/servers/${server.id}/channels/${channel.id}`}
-                        className={({ isActive }) => (isActive ? "channel-item active" : "channel-item")}
+                        className={({ isActive }) => [
+                            "channel-item",
+                            isActive ? "active" : "",
+                            counts[channel.id] ? "unread" : "",
+                        ].join(" ")}
                     >
                         <span className="channel-hash">#</span>
                         <span className="channel-name">{channel.name}</span>
+                        {mentions[channel.id] > 0 && <span className="badge">{mentions[channel.id]}</span>}
                         {canManage && (
                             <button
                                 className="channel-edit"

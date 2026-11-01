@@ -3,6 +3,8 @@ import { NavLink } from "react-router-dom";
 
 import { useDirectMessages } from "../context/directMessages";
 import { useServers } from "../context/servers";
+import { useUnread } from "../context/unread";
+import { sumFor } from "../lib/unreadReducer";
 import CreateServerModal from "./modals/CreateServerModal";
 import ServerIcon from "./ServerIcon";
 
@@ -10,6 +12,7 @@ import ServerIcon from "./ServerIcon";
 export default function ServerRail() {
     const { servers } = useServers();
     const { unreadCount } = useDirectMessages();
+    const { counts, mentions } = useUnread();
     const [creating, setCreating] = useState(false);
 
     const railClass = ({ isActive }: { isActive: boolean }) => (isActive ? "rail-item active" : "rail-item");
@@ -25,16 +28,22 @@ export default function ServerRail() {
 
             <div className="rail-separator" />
 
-            {servers.map((server) => (
-                <NavLink
-                    key={server.id}
-                    to={`/app/servers/${server.id}`}
-                    className={railClass}
-                    data-tooltip={server.name}
-                >
-                    <ServerIcon server={server} />
-                </NavLink>
-            ))}
+            {servers.map((server) => {
+                const channelIds = server.channels.map((c) => c.id);
+                const unread = sumFor(counts, channelIds) > 0;
+                const mentionCount = sumFor(mentions, channelIds);
+                return (
+                    <NavLink
+                        key={server.id}
+                        to={`/app/servers/${server.id}`}
+                        className={({ isActive }) => `${railClass({ isActive })}${unread ? " unread" : ""}`}
+                        data-tooltip={server.name}
+                    >
+                        <ServerIcon server={server} />
+                        {mentionCount > 0 && <span className="rail-badge">{mentionCount > 99 ? "99+" : mentionCount}</span>}
+                    </NavLink>
+                );
+            })}
 
             <button className="rail-item rail-action" onClick={() => setCreating(true)} data-tooltip="Créer un serveur">
                 <span className="rail-action-icon">+</span>
