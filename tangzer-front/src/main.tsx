@@ -6,6 +6,7 @@ import '@fontsource-variable/source-sans-3'
 import './styles/tokens.css'
 import './styles/base.css'
 import './styles/components.css'
+import './styles/layout.css'
 
 import App from './App.tsx'
 import { applyStoredAppearance } from './lib/theme'

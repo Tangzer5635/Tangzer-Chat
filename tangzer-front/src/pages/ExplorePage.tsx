@@ -47,7 +47,7 @@ export default function ExplorePage() {
     };
 
     return (
-        <main className="explore">
+        <div className="explore">
             <section className="explore-hero">
                 <h1>Trouve ta communauté sur {APP_NAME}</h1>
                 <p>Des serveurs publics, ouverts à tous. Rejoins-en un en un clic.</p>
@@ -101,6 +101,6 @@ export default function ExplorePage() {
                     ))}
                 </div>
             )}
-        </main>
+        </div>
     );
 }

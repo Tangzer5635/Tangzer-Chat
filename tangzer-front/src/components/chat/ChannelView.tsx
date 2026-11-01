@@ -8,6 +8,7 @@ import { useDms } from "../../context/dms";
 import { useToasts } from "../../context/toasts";
 import { useUnread } from "../../context/unread";
 import { randomId } from "../../lib/id";
+import { toPlainText } from "../../lib/markdown";
 import { typingLabel } from "../../lib/messageRows";
 import { initialMessagesState, messagesReducer } from "../../lib/messagesReducer";
 import { useSubscription } from "../../realtime/hooks";
@@ -33,6 +34,8 @@ interface ChannelViewProps {
     /** Affiché tout en haut du fil, une fois tout l'historique chargé. */
     welcome: ReactNode;
     placeholder: string;
+    /** Nom du fil pour les lecteurs d'écran (« Messages de #général »). */
+    label: string;
     canModerate: boolean;
     /** Affiché sous l'en-tête, au-dessus du fil (ex. : l'appel en cours). */
     banner?: ReactNode;
@@ -46,7 +49,7 @@ interface ChannelViewProps {
  * réponses, édition, réactions, saisie et lecture.
  */
 export default function ChannelView(props: ChannelViewProps) {
-    const { channelId, header, welcome, placeholder, canModerate, partner } = props;
+    const { channelId, header, welcome, placeholder, label, canModerate, partner } = props;
     const { user } = useAuth();
     const me = user!;
     const { pushToast } = useToasts();
@@ -60,6 +63,8 @@ export default function ChannelView(props: ChannelViewProps) {
     const [partnerReadId, setPartnerReadId] = useState(props.partnerReadId ?? 0);
     const [dragging, setDragging] = useState(false);
     const [profileUser, setProfileUser] = useState<User | null>(null);
+    // Dernier message reçu des autres, lu par les lecteurs d'écran (zone aria-live).
+    const [announcement, setAnnouncement] = useState("");
     const { openWith } = useDms();
     const navigate = useNavigate();
     const showError = useCallback((message: string) => pushToast(message, { tone: "error" }), [pushToast]);
@@ -97,6 +102,9 @@ export default function ChannelView(props: ChannelViewProps) {
             case "MESSAGE_CREATED": {
                 const message = event.payload as Message;
                 dispatch({ type: "received", message });
+                if (message.author.id !== me.id) {
+                    setAnnouncement(`${message.author.displayName} : ${toPlainText(message.content) || "Photo"}`);
+                }
                 setTyping((current) => {
                     const next = { ...current };
                     delete next[message.author.id];
@@ -295,6 +303,7 @@ export default function ChannelView(props: ChannelViewProps) {
                 <div className="page-loading">Chargement des messages…</div>
             ) : (
                 <MessageList
+                    label={label}
                     messages={state.messages}
                     hasMore={state.hasMore}
                     loadingOlder={state.loadingOlder}
@@ -321,6 +330,8 @@ export default function ChannelView(props: ChannelViewProps) {
                     )}
                 />
             )}
+
+            <p className="sr-only" aria-live="polite">{announcement}</p>
 
             <div className="typing-line">
                 {typingText && (

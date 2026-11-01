@@ -105,7 +105,7 @@ public class DirectMessageService {
 
     private static String truncate(String content) {
         if (content.isBlank()) {
-            return "📷 Photo";
+            return "Photo";
         }
         return content.length() <= PREVIEW_LENGTH ? content : content.substring(0, PREVIEW_LENGTH) + "…";
     }

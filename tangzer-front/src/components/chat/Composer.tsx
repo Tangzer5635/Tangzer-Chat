@@ -73,6 +73,9 @@ export default function Composer(props: ComposerProps) {
 
     return (
         <div className="composer">
+            <p id="composer-aide" className="sr-only">
+                Entrée pour envoyer, Maj+Entrée pour aller à la ligne, flèche haut pour modifier ton dernier message.
+            </p>
             {uploads.length > 0 && (
                 <div className="upload-tray">
                     {uploads.map((upload) => (
@@ -123,6 +126,7 @@ export default function Composer(props: ComposerProps) {
                     onPaste={onPaste}
                     placeholder={uploading ? "Envoi des images…" : placeholder}
                     aria-label={placeholder}
+                    aria-describedby="composer-aide"
                     rows={1}
                     maxLength={MAX_LENGTH}
                     autoFocus

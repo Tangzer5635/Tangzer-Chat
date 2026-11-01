@@ -1,22 +1,29 @@
-import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 
+import AppHeader from "../components/AppHeader";
 import IncomingCallModal from "../components/calls/IncomingCallModal";
 import ConnectionBanner from "../components/ConnectionBanner";
-import ServerRail from "../components/ServerRail";
+import AppNav from "../components/nav/AppNav";
+import QuickSearch from "../components/QuickSearch";
 import { useDms } from "../context/dms";
 import { useToasts } from "../context/toasts";
 import { useUnread } from "../context/unread";
+import { APP_NAME } from "../lib/brand";
 import { sumFor } from "../lib/unreadReducer";
 import { useSubscription } from "../realtime/hooks";
-import { APP_NAME } from "../lib/brand";
 
-/** Squelette de l'application connectée : rail des serveurs + page courante. */
+const NAV_ID = "navigation-principale";
+
+/**
+ * Squelette de l'application connectée :
+ * lien d'évitement, en-tête, navigation à gauche, contenu au centre.
+ */
 export default function AppShell() {
     const { pushToast } = useToasts();
     const { counts, mentions } = useUnread();
     const { conversations } = useDms();
+    const location = useLocation();
     const unreadDms = sumFor(counts, conversations.map((c) => c.channelId));
 
     // Titre de l'onglet : « (3) Préau » quand on a des mentions ou des MP non lus.
@@ -30,32 +37,50 @@ export default function AppShell() {
         pushToast(error.message, { tone: "error" });
     });
 
-    // Sur téléphone : la liste des serveurs et des salons s'ouvre en tiroir,
-    // et se referme dès qu'on choisit un lien.
+    // Sur téléphone, la navigation s'ouvre en tiroir et se referme à chaque changement de page.
     const [navOpen, setNavOpen] = useState(false);
+    const [navPath, setNavPath] = useState(location.pathname);
+    if (navPath !== location.pathname) {
+        setNavPath(location.pathname);
+        setNavOpen(false);
+    }
+
+    // Recherche rapide : bouton de l'en-tête ou Ctrl+K (Cmd+K sur Mac).
+    const [searchOpen, setSearchOpen] = useState(false);
+    useEffect(() => {
+        const onKeyDown = (e: KeyboardEvent) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+                e.preventDefault();
+                setSearchOpen(true);
+            }
+        };
+        window.addEventListener("keydown", onKeyDown);
+        return () => window.removeEventListener("keydown", onKeyDown);
+    }, []);
 
     return (
-        <div
-            className={navOpen ? "app-shell nav-open" : "app-shell"}
-            onClickCapture={(e) => {
-                if ((e.target as HTMLElement).closest("a")) {
-                    setNavOpen(false);
-                }
-            }}
-        >
-            <button
-                className="mobile-nav-button"
-                onClick={() => setNavOpen((open) => !open)}
-                aria-label={navOpen ? "Fermer la navigation" : "Ouvrir la navigation"}
-                aria-expanded={navOpen}
+        <div className={navOpen ? "app-shell nav-open" : "app-shell"}>
+            <a
+                className="skip-link"
+                href="#contenu"
+                onClick={(e) => {
+                    e.preventDefault();
+                    document.getElementById("contenu")?.focus();
+                }}
             >
-                {navOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
-            {navOpen && <div className="mobile-nav-backdrop" onClick={() => setNavOpen(false)} />}
+                Aller au contenu
+            </a>
             <ConnectionBanner />
-            <ServerRail />
-            <Outlet />
+            <AppHeader navOpen={navOpen} onToggleNav={() => setNavOpen((open) => !open)} onSearch={() => setSearchOpen(true)} navId={NAV_ID} />
+            <div className="app-body">
+                <AppNav id={NAV_ID} />
+                {navOpen && <div className="mobile-nav-backdrop" onClick={() => setNavOpen(false)} />}
+                <main id="contenu" className="app-main" tabIndex={-1}>
+                    <Outlet />
+                </main>
+            </div>
             <IncomingCallModal />
+            {searchOpen && <QuickSearch onClose={() => setSearchOpen(false)} />}
         </div>
     );
 }
