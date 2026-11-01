@@ -33,8 +33,17 @@ export const initialMessagesState: MessagesState = {
 
 export function messagesReducer(state: MessagesState, action: MessagesAction): MessagesState {
     switch (action.type) {
-        case "historyLoaded":
-            return { messages: action.messages, loaded: true, hasMore: action.hasMore, loadingOlder: false };
+        case "historyLoaded": {
+            // Les messages reçus en direct (ou envoyés) pendant le chargement ne doivent pas disparaître.
+            const loadedIds = new Set(action.messages.map((m) => m.id));
+            const arrivedMeanwhile = state.messages.filter((m) => !loadedIds.has(m.id));
+            return {
+                messages: [...action.messages, ...arrivedMeanwhile],
+                loaded: true,
+                hasMore: action.hasMore,
+                loadingOlder: false,
+            };
+        }
 
         case "olderLoading":
             return { ...state, loadingOlder: true };
