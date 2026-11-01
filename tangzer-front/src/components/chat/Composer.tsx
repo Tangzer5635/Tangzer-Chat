@@ -1,6 +1,8 @@
-import { useRef, useState, type KeyboardEvent } from "react";
+import { useRef, useState, type ClipboardEvent, type KeyboardEvent } from "react";
 
+import { ACCEPTED_IMAGE_TYPES } from "../../lib/attachments";
 import type { Message } from "../../types/api";
+import type { UploadItem } from "./useUploads";
 
 const TYPING_THROTTLE_MS = 3000;
 const MAX_LENGTH = 2000;
@@ -14,12 +16,18 @@ interface ComposerProps {
     onTyping: () => void;
     /** Flèche du haut dans un champ vide : modifier son dernier message. */
     onEditLast: () => void;
+    uploads: UploadItem[];
+    uploading: boolean;
+    onAddFiles: (files: File[]) => void;
+    onRemoveUpload: (key: string) => void;
 }
 
 /** Zone de saisie : Entrée envoie, Maj+Entrée va à la ligne. */
-export default function Composer({ placeholder, replyTo, onCancelReply, onSend, onTyping, onEditLast }: ComposerProps) {
+export default function Composer(props: ComposerProps) {
+    const { placeholder, replyTo, onCancelReply, onSend, onTyping, onEditLast, uploads, uploading } = props;
     const [draft, setDraft] = useState("");
     const lastTyping = useRef(0);
+    const fileInput = useRef<HTMLInputElement>(null);
 
     const onChange = (value: string) => {
         setDraft(value);
@@ -32,7 +40,8 @@ export default function Composer({ placeholder, replyTo, onCancelReply, onSend, 
 
     const send = () => {
         const content = draft.trim();
-        if (!content) {
+        const hasImages = uploads.some((u) => u.attachment);
+        if ((!content && !hasImages) || uploading) {
             return;
         }
         onSend(content);
@@ -46,14 +55,38 @@ export default function Composer({ placeholder, replyTo, onCancelReply, onSend, 
             send();
         } else if (e.key === "Escape" && replyTo) {
             onCancelReply();
-        } else if (e.key === "ArrowUp" && draft === "") {
+        } else if (e.key === "ArrowUp" && draft === "" && uploads.length === 0) {
             e.preventDefault();
             onEditLast();
         }
     };
 
+    // Coller une capture d'écran l'ajoute directement au message.
+    const onPaste = (e: ClipboardEvent<HTMLTextAreaElement>) => {
+        const images = Array.from(e.clipboardData.files).filter((f) => f.type.startsWith("image/"));
+        if (images.length > 0) {
+            e.preventDefault();
+            props.onAddFiles(images);
+        }
+    };
+
     return (
         <div className="composer">
+            {uploads.length > 0 && (
+                <div className="upload-tray">
+                    {uploads.map((upload) => (
+                        <div key={upload.key} className={upload.error ? "upload-item failed" : "upload-item"} title={upload.error ?? upload.file.name}>
+                            <img src={upload.previewUrl} alt={upload.file.name} />
+                            {!upload.attachment && !upload.error && (
+                                <div className="upload-progress"><span style={{ width: `${upload.progress}%` }} /></div>
+                            )}
+                            {upload.error && <span className="upload-error">⚠️</span>}
+                            <button className="upload-remove" onClick={() => props.onRemoveUpload(upload.key)} aria-label="Retirer">✕</button>
+                            <span className="upload-name">{upload.file.name}</span>
+                        </div>
+                    ))}
+                </div>
+            )}
             {replyTo && (
                 <div className="composer-reply">
                     <span>Réponse à <strong>{replyTo.author.displayName}</strong></span>
@@ -61,11 +94,31 @@ export default function Composer({ placeholder, replyTo, onCancelReply, onSend, 
                 </div>
             )}
             <div className={replyTo ? "composer-box with-reply" : "composer-box"}>
+                <button
+                    className="composer-attach"
+                    onClick={() => fileInput.current?.click()}
+                    title="Ajouter des images"
+                    aria-label="Ajouter des images"
+                >
+                    +
+                </button>
+                <input
+                    ref={fileInput}
+                    type="file"
+                    accept={ACCEPTED_IMAGE_TYPES.join(",")}
+                    multiple
+                    hidden
+                    onChange={(e) => {
+                        props.onAddFiles(Array.from(e.target.files ?? []));
+                        e.target.value = "";
+                    }}
+                />
                 <textarea
                     value={draft}
                     onChange={(e) => onChange(e.target.value)}
                     onKeyDown={onKeyDown}
-                    placeholder={placeholder}
+                    onPaste={onPaste}
+                    placeholder={uploading ? "Envoi des images…" : placeholder}
                     rows={1}
                     maxLength={MAX_LENGTH}
                     autoFocus

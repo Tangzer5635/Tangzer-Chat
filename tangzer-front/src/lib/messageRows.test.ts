@@ -17,6 +17,7 @@ const message = (id: number, author: typeof alice, createdAt: string, replyTo = 
     editedAt: null,
     replyTo: replyTo ? { id: 99, author: bob, content: "origine" } : null,
     reactions: [],
+    attachments: [],
 });
 
 describe("buildRows", () => {

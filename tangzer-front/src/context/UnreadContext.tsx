@@ -70,7 +70,7 @@ export function UnreadProvider({ children }: { children: ReactNode }) {
             return;
         }
         dispatch({ type: "activity", channelId, mentioned: false });
-        const preview = toPlainText(message.content);
+        const preview = toPlainText(message.content) || "📷 Photo";
         pushToast(`💬 ${message.author.displayName} : ${preview.length > 60 ? `${preview.slice(0, 60)}…` : preview}`, {
             link: `/app/dm/${channelId}`,
         });

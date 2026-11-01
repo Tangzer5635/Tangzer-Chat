@@ -68,6 +68,8 @@ public class SecurityConfig {
                 .requestMatchers("/ws/**").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS).permitAll()
                 .requestMatchers("/error").permitAll()
+                // Les images se lisent sans token (adresse impossible à deviner, cf. AttachmentController).
+                .requestMatchers(HttpMethod.GET, "/api/attachments/*").permitAll()
                 .anyRequest().authenticated()
         );
 

@@ -6,8 +6,16 @@ export const PAGE_SIZE = 50;
 export const fetchHistory = (channelId: number, before?: number) =>
     api<Message[]>(`/api/channels/${channelId}/messages?limit=${PAGE_SIZE}${before ? `&before=${before}` : ""}`);
 
-export const postMessage = (channelId: number, content: string, replyToId: number | null, nonce: string) =>
-    api<Message>(`/api/channels/${channelId}/messages`, { method: "POST", body: { content, replyToId, nonce } });
+export const postMessage = (
+    channelId: number,
+    content: string,
+    replyToId: number | null,
+    nonce: string,
+    attachmentIds: string[] = [],
+) => api<Message>(`/api/channels/${channelId}/messages`, {
+    method: "POST",
+    body: { content, replyToId, nonce, attachmentIds },
+});
 
 export const editMessage = (messageId: number, content: string) =>
     api<Message>(`/api/messages/${messageId}`, { method: "PATCH", body: { content } });

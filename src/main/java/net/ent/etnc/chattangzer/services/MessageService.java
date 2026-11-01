@@ -1,6 +1,7 @@
 package net.ent.etnc.chattangzer.services;
 
 import net.ent.etnc.chattangzer.exceptions.ApiException;
+import net.ent.etnc.chattangzer.models.dtos.AttachmentDto;
 import net.ent.etnc.chattangzer.models.dtos.ChannelActivityDto;
 import net.ent.etnc.chattangzer.models.dtos.DmActivityDto;
 import net.ent.etnc.chattangzer.models.dtos.MessageDto;
@@ -54,6 +55,7 @@ public class MessageService {
     private final ChannelReadRepository readRepository;
     private final UserRepository userRepository;
     private final AccessService accessService;
+    private final AttachmentService attachmentService;
     private final RealtimeService realtime;
 
     public MessageService(
@@ -62,6 +64,7 @@ public class MessageService {
             ChannelReadRepository readRepository,
             UserRepository userRepository,
             AccessService accessService,
+            AttachmentService attachmentService,
             RealtimeService realtime
     ) {
         this.messageRepository = messageRepository;
@@ -69,6 +72,7 @@ public class MessageService {
         this.readRepository = readRepository;
         this.userRepository = userRepository;
         this.accessService = accessService;
+        this.attachmentService = attachmentService;
         this.realtime = realtime;
     }
 
@@ -98,7 +102,8 @@ public class MessageService {
         Channel channel = accessService.requireChannel(channelId, userId);
         User author = getUser(userId);
 
-        Message message = new Message(channel, author, validateContent(request.content()));
+        boolean hasAttachments = request.attachmentIds() != null && !request.attachmentIds().isEmpty();
+        Message message = new Message(channel, author, validateContent(request.content(), hasAttachments));
 
         if (request.replyToId() != null) {
             Message replyTo = messageRepository.findById(request.replyToId())
@@ -111,9 +116,10 @@ public class MessageService {
         if (channel.isDirect()) {
             channel.setLastMessageAt(message.getCreatedAt());
         }
+        List<AttachmentDto> attachments = attachmentService.attachToMessage(message.getId(), userId, request.attachmentIds());
         markRead(channelId, userId, message.getId());
 
-        MessageDto dto = toDto(message, List.of(), request.nonce());
+        MessageDto dto = toDto(message, List.of(), attachments, request.nonce());
         realtime.toChannel(channelId, "MESSAGE_CREATED", dto);
         announceActivity(channel, message, dto);
         return dto;
@@ -127,7 +133,8 @@ public class MessageService {
             throw ApiException.forbidden("Tu ne peux modifier que tes propres messages");
         }
 
-        message.setContent(validateContent(content));
+        boolean hasAttachments = !attachmentService.byMessage(List.of(messageId)).isEmpty();
+        message.setContent(validateContent(content, hasAttachments));
         message.setEditedAt(Instant.now());
 
         MessageDto dto = toDtos(List.of(message)).getFirst();
@@ -147,6 +154,7 @@ public class MessageService {
         }
 
         Long channelId = channel.getId();
+        attachmentService.deleteForMessage(messageId);
         reactionRepository.deleteAllByMessageId(messageId);
         messageRepository.detachReplies(messageId);
         messageRepository.deleteById(messageId);
@@ -229,9 +237,10 @@ public class MessageService {
         return List.copyOf(mentions);
     }
 
-    static String validateContent(String raw) {
+    /** Un message peut être vide s'il contient des photos. */
+    static String validateContent(String raw, boolean hasAttachments) {
         String content = raw == null ? "" : raw.strip();
-        if (content.isEmpty()) {
+        if (content.isEmpty() && !hasAttachments) {
             throw ApiException.badRequest("Le message est vide");
         }
         if (content.length() > CONTENT_MAX_LENGTH) {
@@ -241,13 +250,16 @@ public class MessageService {
     }
 
     private List<MessageDto> toDtos(List<Message> messages) {
-        Map<Long, List<ReactionDto>> reactions = reactionsByMessage(messages.stream().map(Message::getId).toList());
+        List<Long> ids = messages.stream().map(Message::getId).toList();
+        Map<Long, List<ReactionDto>> reactions = reactionsByMessage(ids);
+        Map<Long, List<AttachmentDto>> attachments = attachmentService.byMessage(ids);
         return messages.stream()
-                .map(m -> toDto(m, reactions.getOrDefault(m.getId(), List.of()), null))
+                .map(m -> toDto(m, reactions.getOrDefault(m.getId(), List.of()),
+                        attachments.getOrDefault(m.getId(), List.of()), null))
                 .toList();
     }
 
-    private MessageDto toDto(Message message, List<ReactionDto> reactions, String nonce) {
+    private MessageDto toDto(Message message, List<ReactionDto> reactions, List<AttachmentDto> attachments, String nonce) {
         Message replyTo = message.getReplyTo();
         MessagePreviewDto preview = replyTo == null ? null : new MessagePreviewDto(
                 replyTo.getId(),
@@ -263,6 +275,7 @@ public class MessageService {
                 message.getEditedAt(),
                 preview,
                 reactions,
+                attachments,
                 nonce);
     }
 
@@ -284,7 +297,11 @@ public class MessageService {
         return result;
     }
 
-    private static String truncate(String content) {
+    /** Aperçu court d'un message ; une photo seule devient « 📷 Photo ». */
+    static String truncate(String content) {
+        if (content.isBlank()) {
+            return "📷 Photo";
+        }
         return content.length() <= PREVIEW_LENGTH ? content : content.substring(0, PREVIEW_LENGTH) + "…";
     }
 

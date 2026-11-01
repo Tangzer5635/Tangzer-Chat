@@ -41,7 +41,7 @@ export default function DmSidebar() {
                                 <strong>{conversation.otherUser.displayName}</strong>
                                 <small>
                                     {last
-                                        ? `${last.author.id === user?.id ? "Toi : " : ""}${toPlainText(last.content)}`
+                                        ? `${last.author.id === user?.id ? "Toi : " : ""}${toPlainText(last.content) || "📷 Photo"}`
                                         : `@${conversation.otherUser.username}`}
                                 </small>
                             </span>
