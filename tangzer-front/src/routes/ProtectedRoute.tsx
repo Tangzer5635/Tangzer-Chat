@@ -1,6 +1,6 @@
 import { Navigate, Outlet } from "react-router-dom";
 
-import { useChatContext } from "../context/ChatContext";
+import { useChatContext } from "../context/chatContext";
 export default function ProtectedRoute() {
 
     const token = localStorage.getItem("jwt");

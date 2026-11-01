@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from "react";
 
 import { sendMessage } from "../services/websocket";
-import { useChatContext } from "../context/ChatContext";
+import { useChatContext } from "../context/chatContext";
 
 export default function Chat() {
 

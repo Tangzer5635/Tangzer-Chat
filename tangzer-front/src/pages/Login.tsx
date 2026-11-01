@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 import { login } from "../services/auth";
 import { connectWebSocket } from "../services/websocket";
-import { useChatContext } from "../context/ChatContext";
+import { useChatContext } from "../context/chatContext";
 
 export default function Login() {
 

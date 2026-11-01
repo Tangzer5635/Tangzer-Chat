@@ -1,7 +1,5 @@
 import {
-    createContext,
     useCallback,
-    useContext,
     useMemo,
     useState,
 } from "react";
@@ -12,45 +10,9 @@ import type {
     TypingStatus,
 } from "../types/ChatMessage";
 
-export interface Notification {
-    id: number;
-    text: string;
-    link?: string;
-}
+import { ChatContext, type Notification } from "./chatContext";
 
 let notifId = 0;
-
-interface ChatContextValue {
-    currentUser: string;
-    setCurrentUser: (u: string) => void;
-
-    publicMessages: ChatMessage[];
-    addPublicMessage: (m: ChatMessage) => void;
-
-    privateMessages: ChatMessage[];
-    addPrivateMessage: (m: ChatMessage) => void;
-
-    roomMessages: ChatMessage[];
-    setRoomMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
-
-    notifications: Notification[];
-    pushNotification: (text: string, link?: string) => void;
-    removeNotification: (id: number) => void;
-
-    unreadDmCount: number;
-    getDmUnreadCount: (username: string) => number;
-    markDmRead: (username: string) => void;
-    resetUnreadDm: () => void;
-
-    messageStatuses: Record<string, MessageStatus["status"]>;
-    updateMessageStatus: (status: MessageStatus) => void;
-
-    typingUsers: Record<string, boolean>;
-    updateTypingStatus: (status: TypingStatus) => void;
-}
-
-const ChatContext =
-    createContext<ChatContextValue | null>(null);
 
 export function ChatProvider({
     children,
@@ -263,16 +225,4 @@ export function ChatProvider({
             {children}
         </ChatContext.Provider>
     );
-}
-
-export function useChatContext(): ChatContextValue {
-    const ctx = useContext(ChatContext);
-
-    if (!ctx) {
-        throw new Error(
-            "useChatContext doit être dans <ChatProvider>"
-        );
-    }
-
-    return ctx;
 }

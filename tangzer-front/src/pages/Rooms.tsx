@@ -5,7 +5,7 @@ import {
     sendRoomMessage,
 } from "../services/websocket";
 
-import { useChatContext } from "../context/ChatContext";
+import { useChatContext } from "../context/chatContext";
 
 const ROOMS = ["general", "dev", "WB47", "Groupe Fond à Droite(Gauche)🤭😜"];
 

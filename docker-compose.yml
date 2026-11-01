@@ -1,0 +1,24 @@
+name: tangzer
+
+services:
+  backend:
+    build: .
+    environment:
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-the-env-file-this-is-not-a-real-secret-0123456789}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-604800000}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-*}
+    restart: unless-stopped
+
+  frontend:
+    build: ./tangzer-front
+    depends_on:
+      - backend
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    environment:
+      # Ajoute l'IP ou le nom du serveur au certificat auto-signé, ex : IP:192.168.1.20
+      TLS_EXTRA_SAN: ${TLS_EXTRA_SAN:-}
+    volumes:
+      - ./certs:/etc/nginx/certs
+    restart: unless-stopped

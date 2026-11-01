@@ -1,91 +1,51 @@
 # ⚡ Tangzer
 
-Tangzer est une application de messagerie instantanée développée avec **Spring Boot**, **Spring Security**, **JWT**, **WebSocket/STOMP** et **React + TypeScript**.
-
-Le projet propose :
-- 💬 un chat public en temps réel ;
-- 👤 des messages privés entre utilisateurs ;
-- #️⃣ des salons dynamiques ;
-- 🔐 une authentification JWT ;
-- 🔌 une connexion WebSocket/STOMP sécurisée ;
-- 🔴 des notifications et compteurs de messages privés non lus ;
-- 🕐 l'affichage de l'heure des messages ;
-- 🎨 une interface sombre inspirée de Discord.
-
-> Projet pédagogique / démonstration. Les utilisateurs et les membres des salons sont actuellement gérés en mémoire.
+Tangzer est une messagerie instantanée inspirée de Discord, développée avec
+**Spring Boot**, **Spring Security / JWT**, **STOMP sur WebSocket** et **React + TypeScript**.
 
 ![Tangzer](tangzer-front/public/favicon.jpg)
 
-## 🧱 Architecture
+La feuille de route complète est dans [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
-```text
-┌──────────────────────────── FRONTEND ────────────────────────────┐
-│ React + TypeScript + Vite                                       │
-│                                                                 │
-│ Pages → Chat / DM / Salons                                      │
-│ Context → état global des messages et notifications             │
-│ Services → REST Auth + STOMP/SockJS                             │
-└───────────────────────────┬─────────────────────────────────────┘
-                            │ HTTP / STOMP
-                            ▼
-┌──────────────────────────── BACKEND ────────────────────────────┐
-│ Spring Boot                                                    │
-│                                                                 │
-│ AuthController → JWT                                           │
-│ SecurityConfig → Spring Security                               │
-│ JwtAuthFilter → authentification REST                          │
-│ JwtChannelInterceptor → authentification STOMP                 │
-│ WebSocketConfig → broker / destinations                        │
-│ ChatController → chat public + DM                              │
-│ RoomController → salons                                        │
-│ RoomService → membres en mémoire                               │
-└─────────────────────────────────────────────────────────────────┘
+## 🚀 Lancer avec Docker (recommandé)
+
+```bash
+cp .env.example .env   # puis changer JWT_SECRET
+docker compose up -d --build
 ```
 
-## 🛠️ Technologies
+Ouvrir ensuite **https://localhost** (le certificat est auto-signé : accepter
+l'avertissement du navigateur une première fois).
 
-### Backend
-- Java 21
-- Spring Boot 4.1.1
-- Spring Security
-- Spring Web
-- Spring WebSocket
-- STOMP
-- SockJS
-- JJWT 0.13.0
-- Maven
+| Service    | Rôle                                                    |
+|------------|---------------------------------------------------------|
+| `frontend` | nginx : sert le front React, relaie `/api` et `/ws`     |
+| `backend`  | API Spring Boot + WebSocket STOMP (non exposé)          |
 
-### Frontend
-- React 19
-- TypeScript 6
-- Vite 8
-- React Router 7
-- `@stomp/stompjs`
-- `sockjs-client`
+### Accès depuis un autre appareil du réseau
 
-## 🚀 Lancer le projet
+Ajouter l'IP de la machine dans `.env`, supprimer le dossier `certs/` puis relancer :
 
-### 1. Backend
+```bash
+TLS_EXTRA_SAN=IP:192.168.1.20
+```
 
-Depuis la racine :
+Pour un certificat reconnu sans avertissement, déposer `tangzer.crt` et
+`tangzer.key` (par exemple générés avec [mkcert](https://github.com/FiloSottile/mkcert))
+dans `certs/`.
+
+> Le HTTPS n'est pas un luxe : les navigateurs n'autorisent le micro et la
+> caméra (appels) qu'en HTTPS ou sur `localhost`.
+
+## 🛠️ Lancer en développement
+
+Backend (port 8080) :
 
 ```bash
 ./mvnw spring-boot:run
 ```
 
-Sous Windows :
-
-```powershell
-.\mvnw.cmd spring-boot:run
-```
-
-Le backend démarre sur :
-
-```text
-http://localhost:8080
-```
-
-### 2. Frontend
+Frontend (port 5173, relaie `/api` et `/ws` vers le backend) :
 
 ```bash
 cd tangzer-front
@@ -93,134 +53,55 @@ npm install
 npm run dev
 ```
 
-Le frontend démarre généralement sur :
-
-```text
-http://localhost:5173
-```
-
 ## 🔑 Comptes de démonstration
-
-Les comptes sont définis dans `CustomUserDetailsService`.
 
 | Utilisateur | Mot de passe |
 |---|---|
 | admin | admin |
 | user | user |
 | tanguy | 1234 |
+| pigloo | 127845 |
 
-⚠️ Ces identifiants sont uniquement destinés à la démonstration locale. Ils ne doivent pas être utilisés pour une application en production.
+## ⚙️ Configuration
 
-## 🔐 Authentification
+| Variable | Défaut | Rôle |
+|---|---|---|
+| `JWT_SECRET` | secret de dev | Clé de signature des JWT (32 caractères min.) |
+| `JWT_EXPIRATION_MS` | `604800000` (7 j) | Durée de validité d'une session |
+| `ALLOWED_ORIGINS` | `*` | Origines autorisées (CORS + WebSocket) |
+| `HTTP_PORT` / `HTTPS_PORT` | `80` / `443` | Ports exposés par nginx |
+| `TLS_EXTRA_SAN` | vide | IP/DNS à ajouter au certificat auto-signé |
 
-Le login REST est effectué sur :
+## 🧪 Tests
 
-```text
-POST /auth/login/
+```bash
+./mvnw test                      # backend
+cd tangzer-front && npm test     # frontend (Vitest)
 ```
 
-Le serveur renvoie un JWT. Le frontend le conserve dans `localStorage`.
+La CI GitHub Actions lance les tests, le lint, le build du front et le build des images Docker.
 
-Lors de la connexion STOMP, le JWT est envoyé dans :
-
-```text
-Authorization: Bearer <token>
-```
-
-Le `JwtChannelInterceptor` valide le token et place l'utilisateur authentifié dans le `Principal`.
-
-## 💬 Destinations STOMP
-
-### Chat public
+## 🧱 Architecture
 
 ```text
-Client SEND /app/chat.send
-        ↓
-ChatController.sendMessage()
-        ↓
-@SendTo("/topic/public")
-        ↓
-Tous les abonnés
+Navigateur ──HTTPS──▶ nginx (frontend) ──▶ /api  ──▶ Spring Boot (REST)
+                                       └─▶ /ws   ──▶ Spring Boot (STOMP)
 ```
 
-### Message privé
-
-```text
-Client SEND /app/chat.direct
-        ↓
-ChatController.directMessage()
-        ↓
-convertAndSendToUser()
-        ↓
-/user/queue/private
-        ↓
-Destinataire
-```
-
-### Salon
-
-```text
-JOIN  /app/room/{id}/join
-SUB   /topic/room/{id}
-SEND  /app/room/{id}/send
-```
-
-Le backend vérifie qu'un utilisateur est membre du salon avant d'accepter son message.
-
-## 📁 Organisation principale
+- **Écritures** : REST (`/api/...`), authentifiées par `Authorization: Bearer <jwt>`.
+- **Temps réel** : STOMP sur WebSocket (`/ws`), le JWT est envoyé dans la trame `CONNECT`
+  et vérifié par `JwtChannelInterceptor`.
 
 ```text
 src/main/java/net/ent/etnc/chattangzer/
-├── controllers/
-│   ├── ChatController.java
-│   ├── RoomController.java
-│   ├── WebSocketConfig.java
-│   └── security/AuthController.java
-├── models/dtos/
-│   ├── ChatMessage.java
-│   ├── DirectMessage.java
-│   └── MessageType.java
-├── security/
-│   ├── CustomUserDetailsService.java
-│   ├── SecurityConfig.java
-│   └── jwt/
-│       ├── JwtAuthFilter.java
-│       ├── JwtChannelInterceptor.java
-│       └── JwtUtils.java
-└── services/
-    └── RoomService.java
+├── config/        configuration (WebSocket…)
+├── controllers/   REST et STOMP
+├── models/        DTO
+├── security/      Spring Security + JWT
+└── services/      logique métier
 
 tangzer-front/src/
-├── components/
-├── context/
-├── layout/
-├── pages/
-├── routes/
-├── services/
-└── types/
+├── components/  context/  layout/  pages/  routes/
+├── lib/         fonctions pures testées
+└── services/    REST + STOMP
 ```
-
-## ⚠️ État actuel / limites
-
-Cette version est fonctionnelle pour une démonstration locale.
-
-Pour une version production, il faudrait notamment :
-- déplacer le secret JWT dans une variable d'environnement ;
-- remplacer les comptes en mémoire par une base de données ;
-- persister les messages ;
-- persister les salons et leurs membres ;
-- gérer l'inscription et les rôles de façon dynamique ;
-- remplacer les URLs `localhost` par une configuration d'environnement ;
-- restreindre les origines WebSocket au domaine réel ;
-- ajouter des tests métier et d'intégration ;
-- mettre en place une gestion plus complète de l'expiration / renouvellement JWT.
-
-## 📚 Documentation
-
-- `docs/ARCHITECTURE.md` : architecture et rôle des classes.
-- `docs/PRESENTATION_ORALE.md` : préparation pour présenter le projet.
-- `docs/GITHUB_CHECKLIST.md` : checklist avant publication GitHub.
-
-## 👨‍💻 Projet
-
-**Tangzer** — application de chat temps réel pédagogique.
