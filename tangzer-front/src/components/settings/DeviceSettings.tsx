@@ -4,6 +4,7 @@ import { rms } from "../../calls/callsState";
 import { playMessageSound } from "../../calls/audio";
 import { deviceConstraint, loadDevicePrefs, saveDevicePrefs, type DevicePrefs } from "../../lib/devicePrefs";
 import { APP_NAME } from "../../lib/brand";
+import Alert from "../ui/Alert";
 
 /** Notifications du bureau et sons : réglages de cet appareil. */
 export function NotificationSettings() {
@@ -140,7 +141,7 @@ export function VoiceSettings() {
     }, [previewing, prefs.cameraId]);
 
     if (!available) {
-        return <p className="form-error">Le micro et la caméra ne sont disponibles qu'en HTTPS.</p>;
+        return <Alert tone="warning">Le micro et la caméra ne sont disponibles qu'en HTTPS.</Alert>;
     }
 
     const microphones = devices.filter((d) => d.kind === "audioinput");
@@ -159,7 +160,7 @@ export function VoiceSettings() {
                 <button className={testing ? "button-danger" : "button-secondary"} onClick={() => setTesting((t) => !t)}>
                     {testing ? "Arrêter le test" : "Tester le micro"}
                 </button>
-                <div className="level-meter" aria-label="Volume du micro">
+                <div className="level-meter" role="meter" aria-label="Volume du micro" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(level * 100)}>
                     <span style={{ width: `${Math.round(level * 100)}%` }} />
                 </div>
             </div>

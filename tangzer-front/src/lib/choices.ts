@@ -11,6 +11,16 @@ export const SERVER_COLORS = [
     "#a63a2b", "#4b4a9e", "#4a5a66", "#9b2f5c", "#7a4a24",
 ];
 
+/** Nom lisible de chaque couleur, pour les lecteurs d'écran. */
+const COLOR_NAMES: Record<string, string> = {
+    "#6b2f73": "Prune", "#9a5500": "Ocre", "#00636b": "Sarcelle", "#1c6a43": "Sapin", "#0b5fa5": "Bleu",
+    "#a63a2b": "Brique", "#4b4a9e": "Indigo", "#4a5a66": "Ardoise", "#9b2f5c": "Framboise", "#7a4a24": "Brun",
+};
+
+export function colorName(hex: string): string {
+    return COLOR_NAMES[hex.toLowerCase()] ?? `Couleur ${hex}`;
+}
+
 export const INVITE_DURATIONS: { label: string; hours: number | null }[] = [
     { label: "1 heure", hours: 1 },
     { label: "24 heures", hours: 24 },

@@ -1,3 +1,4 @@
+import { HeadphoneOff, Maximize2, MicOff, MonitorUp } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { gridColumns, orderTiles } from "../../calls/video";
@@ -34,26 +35,40 @@ function Tile({ participant, speaking, stream, isMe, focused, onFocus }: TilePro
     if (speaking && !participant.muted) classes.push("speaking");
     if (showVideo) classes.push("with-video");
 
+    const name = participant.user.displayName;
+
     return (
-        <div ref={tileRef} className={classes.join(" ")} onClick={onFocus} title={focused ? "Réduire" : "Agrandir"}>
-            {showVideo
-                ? <Video stream={stream} mirrored={isMe && !participant.screen} />
-                : <Avatar user={participant.user} size={80} />}
+        <div ref={tileRef} className={classes.join(" ")}>
+            {/* Toute la tuile est un bouton : cliquer ou appuyer sur Entrée l'agrandit. */}
+            <button
+                type="button"
+                className="call-tile-main"
+                onClick={onFocus}
+                aria-pressed={focused}
+                aria-label={`Agrandir ${name}`}
+                title={focused ? "Réduire" : "Agrandir"}
+            >
+                {showVideo
+                    ? <Video stream={stream} mirrored={isMe && !participant.screen} />
+                    : <Avatar user={participant.user} size={80} />}
+            </button>
             <span className="call-tile-name">
-                {participant.screen && "🖥️ "}
-                {participant.user.displayName}
-                {participant.deafened ? " 🙉" : participant.muted ? " 🔇" : ""}
+                {participant.screen && <MonitorUp size={16} role="img" aria-label="Partage son écran" />}
+                {name}
+                {participant.deafened
+                    ? <HeadphoneOff size={16} role="img" aria-label="Son coupé" />
+                    : participant.muted ? <MicOff size={16} role="img" aria-label="Micro coupé" /> : null}
+                {speaking && !participant.muted && <span className="sr-only">(parle)</span>}
             </span>
             {showVideo && (
                 <button
+                    type="button"
                     className="call-tile-fullscreen"
                     title="Plein écran"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        void tileRef.current?.requestFullscreen?.();
-                    }}
+                    aria-label={`Afficher ${name} en plein écran`}
+                    onClick={() => void tileRef.current?.requestFullscreen?.()}
                 >
-                    ⛶
+                    <Maximize2 size={18} />
                 </button>
             )}
         </div>

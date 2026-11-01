@@ -1,3 +1,4 @@
+import { ImagePlus } from "lucide-react";
 import { useCallback, useEffect, useReducer, useState, type DragEvent, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -284,7 +285,7 @@ export default function ChannelView(props: ChannelViewProps) {
         >
             {dragging && (
                 <div className="drop-overlay" onDragLeave={() => setDragging(false)}>
-                    <div>📷<strong>Dépose tes images ici</strong><span>PNG, JPEG, GIF ou WEBP · 10 Mo max · 4 par message</span></div>
+                    <div><ImagePlus size={48} /><strong>Dépose tes images ici</strong><span>PNG, JPEG, GIF ou WEBP · 10 Mo max · 4 par message</span></div>
                 </div>
             )}
             <header className="chat-header">{header}</header>

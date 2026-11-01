@@ -6,7 +6,7 @@ import { useAuth } from "../../context/auth";
 import { useToasts } from "../../context/toasts";
 import { validateImageFile } from "../../lib/attachments";
 import { colorFor } from "../../lib/avatar";
-import { SERVER_COLORS } from "../../lib/choices";
+import { colorName, SERVER_COLORS } from "../../lib/choices";
 import { cropToSquare } from "../../lib/image";
 import Avatar from "../Avatar";
 
@@ -72,12 +72,12 @@ export default function ProfileSettings() {
     return (
         <div className="settings-split">
             <div className="form">
-                <label>Photo de profil</label>
+                <span className="form-label">Photo de profil</span>
                 <div className="settings-row">
-                    <button className="button-primary" onClick={() => fileInput.current?.click()} disabled={uploading}>
+                    <button className="button-primary" onClick={() => fileInput.current?.click()} disabled={uploading} aria-describedby="avatar-hint">
                         {uploading ? "Envoi…" : "Changer la photo"}
                     </button>
-                    {user.avatarUrl && <button className="button-link" onClick={removeAvatar}>Retirer</button>}
+                    {user.avatarUrl && <button className="button-link" onClick={removeAvatar}>Retirer la photo</button>}
                     <input
                         ref={fileInput}
                         type="file"
@@ -89,7 +89,7 @@ export default function ProfileSettings() {
                         }}
                     />
                 </div>
-                <p className="form-hint">L'image est recadrée en carré au centre.</p>
+                <p className="form-hint" id="avatar-hint">L'image est recadrée en carré au centre.</p>
 
                 <label htmlFor="profile-name">Nom affiché</label>
                 <input id="profile-name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} maxLength={32} />
@@ -97,41 +97,49 @@ export default function ProfileSettings() {
                 <label htmlFor="profile-bio">À propos de moi</label>
                 <textarea
                     id="profile-bio"
+                    aria-describedby="profile-bio-count"
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
                     maxLength={190}
                     rows={4}
                     placeholder="Quelques mots sur toi…"
                 />
-                <p className="form-hint">{190 - bio.length} caractères restants</p>
+                <p className="form-hint" id="profile-bio-count">{190 - bio.length} caractères restants</p>
 
-                <label>Couleur de la bannière</label>
-                <div className="color-grid">
-                    <button
-                        type="button"
-                        className={bannerColor === "" ? "color-choice active" : "color-choice"}
-                        style={{ background: colorFor(user.id) }}
-                        onClick={() => setBannerColor("")}
-                        title="Couleur par défaut"
-                    />
-                    {SERVER_COLORS.map((color) => (
+                <fieldset className="choice-group">
+                    <legend className="form-label">Couleur de la bannière</legend>
+                    <div className="color-grid">
                         <button
                             type="button"
-                            key={color}
-                            className={bannerColor === color ? "color-choice active" : "color-choice"}
-                            style={{ background: color }}
-                            onClick={() => setBannerColor(color)}
-                            aria-label={`Couleur ${color}`}
+                            className="color-choice"
+                            style={{ background: colorFor(user.id) }}
+                            aria-pressed={bannerColor === ""}
+                            aria-label="Couleur par défaut"
+                            title="Couleur par défaut"
+                            onClick={() => setBannerColor("")}
                         />
-                    ))}
-                    <input
-                        type="color"
-                        className="color-input"
-                        value={bannerColor || colorFor(user.id)}
-                        onChange={(e) => setBannerColor(e.target.value)}
-                        title="Couleur personnalisée"
-                    />
-                </div>
+                        {SERVER_COLORS.map((color) => (
+                            <button
+                                type="button"
+                                key={color}
+                                className="color-choice"
+                                style={{ background: color }}
+                                aria-pressed={bannerColor === color}
+                                aria-label={colorName(color)}
+                                title={colorName(color)}
+                                onClick={() => setBannerColor(color)}
+                            />
+                        ))}
+                        <input
+                            type="color"
+                            className="color-input"
+                            value={bannerColor || colorFor(user.id)}
+                            onChange={(e) => setBannerColor(e.target.value)}
+                            aria-label="Autre couleur"
+                            title="Autre couleur"
+                        />
+                    </div>
+                </fieldset>
 
                 <div className="settings-actions">
                     <button className="button-primary" onClick={save} disabled={!changed || saving}>
@@ -141,7 +149,7 @@ export default function ProfileSettings() {
             </div>
 
             <div className="settings-preview">
-                <span className="settings-preview-label">Aperçu</span>
+                <span className="settings-preview-label" aria-hidden="true">Aperçu</span>
                 <div className="profile-card">
                     <div className="profile-card-banner" style={{ background: bannerColor || colorFor(user.id) }} />
                     <div className="profile-card-body">

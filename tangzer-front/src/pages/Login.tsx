@@ -2,6 +2,8 @@ import { useState, type FormEvent } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../context/auth";
+import Alert from "../components/ui/Alert";
+import Field from "../components/ui/Field";
 import AuthLayout from "../layout/AuthLayout";
 
 export default function Login() {
@@ -23,7 +25,7 @@ export default function Login() {
         e.preventDefault();
 
         if (!username.trim() || !password) {
-            setError("Veuillez remplir tous les champs.");
+            setError("Saisis ton nom d'utilisateur et ton mot de passe.");
             return;
         }
 
@@ -41,38 +43,46 @@ export default function Login() {
 
     return (
         <AuthLayout>
-            <h2>Ha, te revoilà !</h2>
-            <p className="login-subtitle">Nous sommes si heureux de te revoir !</p>
+            <h2>Connexion</h2>
+            <p className="login-subtitle">Content de te revoir.</p>
 
-            <form onSubmit={handleSubmit}>
-                <label htmlFor="login-username">Nom d'utilisateur</label>
-                <input
-                    id="login-username"
-                    type="text"
-                    autoComplete="username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    autoFocus
-                />
+            <form className="form" onSubmit={handleSubmit} noValidate>
+                <Field id="login-username" label="Nom d'utilisateur">
+                    {(control) => (
+                        <input
+                            {...control}
+                            type="text"
+                            autoComplete="username"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            autoFocus
+                            required
+                        />
+                    )}
+                </Field>
 
-                <label htmlFor="login-password">Mot de passe</label>
-                <input
-                    id="login-password"
-                    type="password"
-                    autoComplete="current-password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                />
+                <Field id="login-password" label="Mot de passe">
+                    {(control) => (
+                        <input
+                            {...control}
+                            type="password"
+                            autoComplete="current-password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                        />
+                    )}
+                </Field>
 
-                {error && <p className="login-error">{error}</p>}
+                {error && <Alert tone="error">{error}</Alert>}
 
-                <button type="submit" disabled={submitting}>
+                <button type="submit" className="button-primary big login-submit" disabled={submitting}>
                     {submitting ? "Connexion…" : "Se connecter"}
                 </button>
             </form>
 
             <p className="login-switch">
-                Besoin d'un compte ? <Link to="/register" state={location.state}>S'inscrire</Link>
+                Pas encore de compte ? <Link to="/register" state={location.state}>Créer un compte</Link>
             </p>
         </AuthLayout>
     );

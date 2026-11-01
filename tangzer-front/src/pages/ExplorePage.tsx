@@ -1,3 +1,4 @@
+import { Search, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -50,14 +51,24 @@ export default function ExplorePage() {
             <section className="explore-hero">
                 <h1>Trouve ta communauté sur {APP_NAME}</h1>
                 <p>Des serveurs publics, ouverts à tous. Rejoins-en un en un clic.</p>
-                <input
-                    className="explore-search"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="🔍  Rechercher un serveur"
-                    autoFocus
-                />
+                <label htmlFor="explore-search" className="explore-search-label">Rechercher un serveur public</label>
+                <div className="explore-search-box">
+                    <Search size={20} />
+                    <input
+                        id="explore-search"
+                        type="search"
+                        className="explore-search"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        placeholder="Nom ou description"
+                        autoFocus
+                    />
+                </div>
             </section>
+
+            <p className="sr-only" aria-live="polite">
+                {results === null ? "" : `${results.length} serveur${results.length > 1 ? "s" : ""} trouvé${results.length > 1 ? "s" : ""}`}
+            </p>
 
             {results === null ? (
                 <p className="page-loading">Recherche…</p>
@@ -67,7 +78,7 @@ export default function ExplorePage() {
                 <div className="explore-grid">
                     {results.map((server) => (
                         <article key={server.id} className="explore-card">
-                            <div className="explore-card-banner" style={{ background: server.color }}>
+                            <div className="explore-card-banner" style={{ background: server.color }} aria-hidden="true">
                                 <ServerIcon server={server} size={56} />
                             </div>
                             <div className="explore-card-body">
@@ -75,11 +86,12 @@ export default function ExplorePage() {
                                 <p>{server.description ?? "Pas encore de description."}</p>
                                 <div className="explore-card-footer">
                                     <span className="explore-members">
-                                        <i className="dot" /> {server.memberCount} membre{server.memberCount > 1 ? "s" : ""}
+                                        <Users size={16} /> {server.memberCount} membre{server.memberCount > 1 ? "s" : ""}
                                     </span>
                                     <button
                                         className={server.joined ? "button-secondary" : "button-primary"}
                                         onClick={() => open(server)}
+                                        aria-label={`${server.joined ? "Ouvrir" : "Rejoindre"} ${server.name}`}
                                     >
                                         {server.joined ? "Ouvrir" : "Rejoindre"}
                                     </button>

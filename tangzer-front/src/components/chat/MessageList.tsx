@@ -1,3 +1,4 @@
+import { ArrowDown } from "lucide-react";
 import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
 import { buildRows } from "../../lib/messageRows";
@@ -90,7 +91,7 @@ export default function MessageList({ messages, hasMore, loadingOlder, onLoadOld
 
             {!atBottom && (
                 <button className="jump-to-bottom" onClick={jumpToBottom}>
-                    Tu consultes d'anciens messages — Revenir en bas ↓
+                    Tu consultes d'anciens messages. Revenir en bas <ArrowDown size={16} />
                 </button>
             )}
         </div>

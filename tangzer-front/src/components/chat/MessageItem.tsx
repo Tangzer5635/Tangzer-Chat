@@ -1,3 +1,4 @@
+import { CheckCheck, FaceSlightlySmilingPlus, Pencil, Reply, Trash } from "lucide-react";
 import { useState, type KeyboardEvent } from "react";
 
 import { useLiveUser } from "../../context/users";
@@ -59,10 +60,11 @@ export default function MessageItem(props: MessageItemProps) {
         <div className={classes.join(" ")} id={`message-${message.id}`}>
             {message.replyTo && (
                 <button className="reply-preview" onClick={() => props.onJumpTo(message.replyTo!.id)}>
-                    <span className="reply-spine" />
+                    <span className="sr-only">En réponse à</span>
+                    <span className="reply-spine" aria-hidden="true" />
                     <Avatar user={message.replyTo.author} size={16} />
                     <strong>{message.replyTo.author.displayName}</strong>
-                    <span className="reply-preview-text">{toPlainText(message.replyTo.content) || "📷 Photo"}</span>
+                    <span className="reply-preview-text">{toPlainText(message.replyTo.content) || "Photo"}</span>
                 </button>
             )}
 
@@ -98,6 +100,7 @@ export default function MessageItem(props: MessageItemProps) {
                                 value={draft}
                                 onChange={(e) => setDraft(e.target.value)}
                                 onKeyDown={onEditKeyDown}
+                                aria-label="Modifier le message"
                                 maxLength={2000}
                                 autoFocus
                                 rows={1}
@@ -116,7 +119,7 @@ export default function MessageItem(props: MessageItemProps) {
 
                     <AttachmentGrid attachments={message.attachments} />
 
-                    {props.seen && <p className="message-seen">✓✓ Vu</p>}
+                    {props.seen && <p className="message-seen"><CheckCheck size={14} /> Vu</p>}
 
                     {message.failed && (
                         <p className="message-failed">
@@ -131,6 +134,8 @@ export default function MessageItem(props: MessageItemProps) {
                                     key={reaction.emoji}
                                     className={reaction.userIds.includes(me.id) ? "reaction mine" : "reaction"}
                                     onClick={() => props.onReact(reaction.emoji)}
+                                    aria-pressed={reaction.userIds.includes(me.id)}
+                                    aria-label={`Réaction ${reaction.emoji} : ${reaction.userIds.length}`}
                                 >
                                     <span>{reaction.emoji}</span> {reaction.userIds.length}
                                 </button>
@@ -142,20 +147,29 @@ export default function MessageItem(props: MessageItemProps) {
 
             {confirmed && !editing && (
                 <div className="message-toolbar">
-                    <button title="Ajouter une réaction" onClick={() => setPickerOpen((v) => !v)}>😀</button>
-                    <button title="Répondre" onClick={props.onReply}>↩️</button>
+                    <button title="Ajouter une réaction" aria-label="Ajouter une réaction" aria-expanded={pickerOpen} onClick={() => setPickerOpen((v) => !v)}>
+                        <FaceSlightlySmilingPlus size={18} />
+                    </button>
+                    <button title="Répondre" aria-label="Répondre" onClick={props.onReply}>
+                        <Reply size={18} />
+                    </button>
                     {isOwn && (
                         <button
                             title="Modifier"
+                            aria-label="Modifier le message"
                             onClick={() => {
                                 setDraft(message.content);
                                 props.onStartEdit();
                             }}
                         >
-                            ✏️
+                            <Pencil size={18} />
                         </button>
                     )}
-                    {(isOwn || canModerate) && <button title="Supprimer" onClick={props.onDelete}>🗑️</button>}
+                    {(isOwn || canModerate) && (
+                        <button title="Supprimer" aria-label="Supprimer le message" className="danger" onClick={props.onDelete}>
+                            <Trash size={18} />
+                        </button>
+                    )}
                 </div>
             )}
 

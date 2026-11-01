@@ -1,3 +1,4 @@
+import { Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
@@ -7,6 +8,8 @@ import { useServers } from "../context/servers";
 import { describeExpiry } from "../lib/invites";
 import type { InvitePreview } from "../types/api";
 import { APP_NAME } from "../lib/brand";
+import Logo from "../components/Logo";
+import Alert from "../components/ui/Alert";
 
 /** /invite/:code : aperçu du serveur puis acceptation de l'invitation. */
 export default function InvitePage() {
@@ -41,30 +44,30 @@ export default function InvitePage() {
     };
 
     return (
-        <div className="invite-page">
+        <main className="invite-page">
             <div className="invite-card">
+                <Logo size={40} withName />
                 {!preview && !error && <p>Chargement de l'invitation…</p>}
 
                 {error && !preview && (
                     <>
-                        <div className="invite-broken">🔗</div>
                         <h1>Invitation invalide</h1>
-                        <p className="invite-subtitle">{error}</p>
+                        <Alert tone="error">{error}</Alert>
                         <Link to="/app" className="button-primary">Retour à {APP_NAME}</Link>
                     </>
                 )}
 
                 {preview && (
                     <>
-                        <ServerIcon server={preview.server} size={88} />
+                        <ServerIcon server={preview.server} size={80} />
                         <p className="invite-subtitle">{preview.inviter.displayName} t'invite à rejoindre</p>
                         <h1>{preview.server.name}</h1>
                         {preview.server.description && <p className="invite-description">{preview.server.description}</p>}
                         <p className="invite-members">
-                            <i className="dot" /> {preview.server.memberCount} membre{preview.server.memberCount > 1 ? "s" : ""}
+                            <Users size={16} /> {preview.server.memberCount} membre{preview.server.memberCount > 1 ? "s" : ""}
                         </p>
 
-                        {error && <p className="form-error">{error}</p>}
+                        {error && <Alert tone="error">{error}</Alert>}
 
                         {preview.server.joined ? (
                             <button className="button-primary big" onClick={() => navigate(`/app/servers/${preview.server.id}`)}>
@@ -78,13 +81,13 @@ export default function InvitePage() {
                                 <p className="form-hint">Cette invitation {describeExpiry(preview.expiresAt)}.</p>
                             </>
                         ) : (
-                            <p className="form-error">Cette invitation a expiré ou a atteint sa limite d'utilisations.</p>
+                            <Alert tone="warning">Cette invitation a expiré ou a atteint sa limite d'utilisations.</Alert>
                         )}
 
                         <Link to="/app" className="invite-back">Pas maintenant</Link>
                     </>
                 )}
             </div>
-        </div>
+        </main>
     );
 }

@@ -3,12 +3,21 @@ import { useNavigate } from "react-router-dom";
 
 import { createServer } from "../../api/servers";
 import { useServers } from "../../context/servers";
-import { SERVER_COLORS, SERVER_ICONS } from "../../lib/choices";
+import { SERVER_COLORS } from "../../lib/choices";
 import { parseInviteCode } from "../../lib/invites";
 import Modal from "../Modal";
 import ServerIcon from "../ServerIcon";
+import Alert from "../ui/Alert";
+import Field from "../ui/Field";
+import Tabs from "../ui/Tabs";
+import ServerLookPicker from "./ServerLookPicker";
 
 type Tab = "create" | "join";
+
+const TABS: { id: Tab; label: string }[] = [
+    { id: "create", label: "Créer" },
+    { id: "join", label: "Rejoindre" },
+];
 
 /** Créer un serveur, ou en rejoindre un avec un lien d'invitation. */
 export default function CreateServerModal({ onClose }: { onClose: () => void }) {
@@ -18,7 +27,7 @@ export default function CreateServerModal({ onClose }: { onClose: () => void }) 
     const [tab, setTab] = useState<Tab>("create");
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
-    const [icon, setIcon] = useState<string | null>("🎮");
+    const [icon, setIcon] = useState<string | null>(null);
     const [color, setColor] = useState(SERVER_COLORS[0]);
     const [isPublic, setIsPublic] = useState(false);
     const [inviteInput, setInviteInput] = useState("");
@@ -59,117 +68,90 @@ export default function CreateServerModal({ onClose }: { onClose: () => void }) 
 
     return (
         <Modal
-            title={tab === "create" ? "Crée ton serveur" : "Rejoindre un serveur"}
+            title={tab === "create" ? "Créer un serveur" : "Rejoindre un serveur"}
             subtitle={tab === "create"
-                ? "Ton serveur, c'est là où tu retrouves tes potes. Donne-lui une personnalité !"
+                ? "Un serveur regroupe des salons pour ta communauté."
                 : "Saisis une invitation pour rejoindre un serveur existant."}
             onClose={onClose}
         >
-            <div className="tabs">
-                <button className={tab === "create" ? "tab active" : "tab"} onClick={() => switchTab("create")}>Créer</button>
-                <button className={tab === "join" ? "tab active" : "tab"} onClick={() => switchTab("join")}>Rejoindre</button>
-            </div>
+            <Tabs label="Créer ou rejoindre" tabs={TABS} value={tab} onChange={switchTab}>
+                {tab === "create" ? (
+                    <form className="form" onSubmit={handleCreate}>
+                        <div className="server-preview" aria-hidden="true">
+                            <ServerIcon server={{ name: name || "Nouveau serveur", icon, color }} size={64} />
+                            <span>{name || "Nouveau serveur"}</span>
+                        </div>
 
-            {tab === "create" ? (
-                <form className="form" onSubmit={handleCreate}>
-                    <div className="server-preview">
-                        <ServerIcon server={{ name: name || "Nouveau serveur", icon, color }} size={72} />
-                        <span>{name || "Nouveau serveur"}</span>
-                    </div>
+                        <Field label="Nom du serveur" hint="De 2 à 50 caractères.">
+                            {(control) => (
+                                <input
+                                    {...control}
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    maxLength={50}
+                                    placeholder="Le serveur de l'équipe"
+                                    required
+                                />
+                            )}
+                        </Field>
 
-                    <label htmlFor="server-name">Nom du serveur</label>
-                    <input
-                        id="server-name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        maxLength={50}
-                        placeholder="Le serveur de la team"
-                        autoFocus
-                    />
+                        <ServerLookPicker icon={icon} onIconChange={setIcon} color={color} onColorChange={setColor} />
 
-                    <label>Icône</label>
-                    <div className="emoji-grid">
-                        <button
-                            type="button"
-                            className={icon === null ? "emoji-choice active" : "emoji-choice"}
-                            onClick={() => setIcon(null)}
-                            title="Initiales"
-                        >
-                            Aa
-                        </button>
-                        {SERVER_ICONS.map((emoji) => (
-                            <button
-                                type="button"
-                                key={emoji}
-                                className={icon === emoji ? "emoji-choice active" : "emoji-choice"}
-                                onClick={() => setIcon(emoji)}
-                            >
-                                {emoji}
+                        <Field label="Description (facultatif)">
+                            {(control) => (
+                                <textarea
+                                    {...control}
+                                    value={description}
+                                    onChange={(e) => setDescription(e.target.value)}
+                                    maxLength={300}
+                                    rows={2}
+                                    placeholder="De quoi parle-t-on ici ?"
+                                />
+                            )}
+                        </Field>
+
+                        <label className="switch">
+                            <input type="checkbox" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} />
+                            <span>
+                                <strong>Serveur public</strong>
+                                <small>Visible dans « Explorer » : tout le monde peut le rejoindre sans invitation.</small>
+                            </span>
+                        </label>
+
+                        {error && <Alert tone="error">{error}</Alert>}
+
+                        <div className="modal-actions">
+                            <button type="button" className="button-link" onClick={onClose}>Annuler</button>
+                            <button type="submit" className="button-primary" disabled={submitting || name.trim().length < 2}>
+                                {submitting ? "Création…" : "Créer le serveur"}
                             </button>
-                        ))}
-                    </div>
+                        </div>
+                    </form>
+                ) : (
+                    <form className="form" onSubmit={handleJoin}>
+                        <Field
+                            label="Lien ou code d'invitation"
+                            hint={`Par exemple aB3dE5fG ou ${window.location.origin}/invite/aB3dE5fG`}
+                        >
+                            {(control) => (
+                                <input
+                                    {...control}
+                                    value={inviteInput}
+                                    onChange={(e) => setInviteInput(e.target.value)}
+                                    autoComplete="off"
+                                />
+                            )}
+                        </Field>
 
-                    <label>Couleur</label>
-                    <div className="color-grid">
-                        {SERVER_COLORS.map((c) => (
-                            <button
-                                type="button"
-                                key={c}
-                                className={color === c ? "color-choice active" : "color-choice"}
-                                style={{ background: c }}
-                                onClick={() => setColor(c)}
-                                aria-label={`Couleur ${c}`}
-                            />
-                        ))}
-                    </div>
+                        {error && <Alert tone="error">{error}</Alert>}
 
-                    <label htmlFor="server-description">Description (facultatif)</label>
-                    <textarea
-                        id="server-description"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        maxLength={300}
-                        rows={2}
-                        placeholder="De quoi parle-t-on ici ?"
-                    />
-
-                    <label className="switch">
-                        <input type="checkbox" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} />
-                        <span>
-                            <strong>Serveur public</strong>
-                            <small>Visible dans « Explorer » : tout le monde peut le rejoindre sans invitation.</small>
-                        </span>
-                    </label>
-
-                    {error && <p className="form-error">{error}</p>}
-
-                    <div className="modal-actions">
-                        <button type="button" className="button-link" onClick={onClose}>Annuler</button>
-                        <button type="submit" className="button-primary" disabled={submitting || name.trim().length < 2}>
-                            {submitting ? "Création…" : "Créer"}
-                        </button>
-                    </div>
-                </form>
-            ) : (
-                <form className="form" onSubmit={handleJoin}>
-                    <label htmlFor="invite-input">Lien d'invitation</label>
-                    <input
-                        id="invite-input"
-                        value={inviteInput}
-                        onChange={(e) => setInviteInput(e.target.value)}
-                        placeholder={`${window.location.origin}/invite/aB3dE5fG`}
-                        autoFocus
-                    />
-                    <p className="form-hint">Les invitations ressemblent à aB3dE5fG ou {window.location.origin}/invite/aB3dE5fG</p>
-
-                    {error && <p className="form-error">{error}</p>}
-
-                    <div className="modal-actions">
-                        <button type="button" className="button-link" onClick={onClose}>Annuler</button>
-                        <button type="submit" className="button-primary">Rejoindre</button>
-                    </div>
-                </form>
-            )}
+                        <div className="modal-actions">
+                            <button type="button" className="button-link" onClick={onClose}>Annuler</button>
+                            <button type="submit" className="button-primary">Rejoindre</button>
+                        </div>
+                    </form>
+                )}
+            </Tabs>
         </Modal>
     );
 }

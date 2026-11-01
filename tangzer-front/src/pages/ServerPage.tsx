@@ -1,3 +1,4 @@
+import { Hash, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 
@@ -79,24 +80,26 @@ export default function ServerPage() {
                 placeholder={`Envoyer un message dans #${channel.name}`}
                 header={
                     <>
-                        <span className="chat-header-hash">#</span>
+                        <Hash className="chat-header-hash" size={22} />
                         <h1>{channel.name}</h1>
                         {channel.topic && <span className="chat-header-topic">{channel.topic}</span>}
                         <span className="spacer" />
                         <button
-                            className={showMembers ? "icon-button active" : "icon-button"}
+                            className="icon-button"
                             onClick={toggleMembers}
                             title={showMembers ? "Masquer les membres" : "Afficher les membres"}
+                            aria-label="Liste des membres"
+                            aria-pressed={showMembers}
                         >
-                            👥
+                            <Users size={20} />
                         </button>
                     </>
                 }
                 welcome={
                     <div className="channel-welcome">
-                        <div className="channel-welcome-icon">#</div>
+                        <div className="channel-welcome-icon" aria-hidden="true"><Hash size={36} /></div>
                         <h2>Bienvenue dans #{channel.name} !</h2>
-                        <p>{channel.topic ?? "C'est le début de ce salon. Dis bonjour 👋"}</p>
+                        <p>{channel.topic ?? "C'est le début de ce salon."}</p>
                     </div>
                 }
             />

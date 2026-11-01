@@ -264,7 +264,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
         }
         if (event.type === "CALL_DECLINED") {
             const { channelId, by } = event.payload as { channelId: number; by: { displayName: string } };
-            pushToast(`📵 ${by.displayName} a refusé l'appel.`);
+            pushToast(`${by.displayName} a refusé l'appel.`);
             const alone = (calls[channelId]?.participants.length ?? 1) <= 1;
             if (currentRef.current?.channelId === channelId && alone) {
                 leave();
@@ -297,7 +297,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
             return;
         }
         const timeout = setTimeout(() => {
-            pushToast("📵 Pas de réponse.");
+            pushToast("Pas de réponse.");
             leave();
         }, RING_TIMEOUT_MS);
         return () => clearTimeout(timeout);
