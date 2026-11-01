@@ -7,6 +7,19 @@ Tangzer est une messagerie instantanée inspirée de Discord, développée avec
 
 La feuille de route complète est dans [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
+## ✨ Fonctionnalités
+
+- **Comptes** : inscription, connexion, session conservée au rechargement.
+- **Serveurs** : création (nom, emoji, couleur, description), serveurs publics ou privés,
+  page « Explorer » pour trouver les serveurs publics, serveur public « Tangzer » rejoint
+  automatiquement par chaque inscrit.
+- **Invitations** : liens `/invite/CODE` avec durée de validité et nombre d'utilisations.
+- **Salons** : création, renommage, sujet, suppression (style Discord : `mon-salon`).
+- **Rôles** : propriétaire, admins, membres ; nommer/retirer un admin, expulser.
+- **Temps réel** : messages, arrivées/départs, nouveaux salons, changements de rôle…
+  sans recharger la page ; reconnexion automatique.
+- **Messages privés** avec accusés de lecture et indicateur de saisie.
+
 ## 🚀 Lancer avec Docker (recommandé)
 
 ```bash
@@ -103,7 +116,17 @@ Navigateur ──HTTPS──▶ nginx (frontend) ──▶ /api  ──▶ Sprin
 
 - **Écritures** : REST (`/api/...`), authentifiées par `Authorization: Bearer <jwt>`.
 - **Temps réel** : STOMP sur WebSocket (`/ws`), le JWT est envoyé dans la trame `CONNECT`
-  et vérifié par `JwtChannelInterceptor`.
+  et vérifié par `JwtChannelInterceptor`. Chaque abonnement est contrôlé par
+  `StompSubscriptionGuard` : on n'écoute que les serveurs et salons dont on est membre.
+
+| Destination STOMP | Contenu |
+|---|---|
+| `/topic/servers/{id}` | événements d'un serveur (salons, membres, paramètres) |
+| `/topic/channels/{id}` | événements d'un salon (messages) |
+| `/user/queue/events` | événements personnels (serveur rejoint, expulsion) |
+| `/user/queue/errors` | erreurs d'une action STOMP |
+
+Tous les événements ont la forme `{"type": "CHANNEL_CREATED", "payload": {...}}`.
 
 ```text
 src/main/java/net/ent/etnc/chattangzer/
@@ -120,6 +143,6 @@ src/main/resources/db/migration/   schéma SQL versionné (Flyway)
 tangzer-front/src/
 ├── api/         appels REST (client http.ts commun)
 ├── components/  context/  layout/  pages/  routes/
-├── lib/         fonctions pures testées
-└── services/    STOMP
+├── lib/         fonctions pures testées (reducers, permissions, formats)
+└── realtime/    client STOMP partagé + hooks useSubscription
 ```

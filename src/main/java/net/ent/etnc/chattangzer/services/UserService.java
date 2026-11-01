@@ -23,10 +23,12 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ServerService serverService;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, ServerService serverService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.serverService = serverService;
     }
 
     /** "  Tanguy " devient "tanguy" : les usernames sont insensibles à la casse. */
@@ -56,7 +58,10 @@ public class UserService {
             throw ApiException.conflict("Ce nom d'utilisateur est déjà pris");
         }
 
-        return userRepository.save(new User(username, displayName, passwordEncoder.encode(password)));
+        User user = userRepository.save(new User(username, displayName, passwordEncoder.encode(password)));
+        // Tout nouvel inscrit arrive sur le serveur public de Tangzer.
+        serverService.joinDefaultServer(user);
+        return user;
     }
 
     public User getById(Long id) {

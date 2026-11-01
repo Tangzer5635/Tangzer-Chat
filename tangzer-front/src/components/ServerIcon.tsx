@@ -1,0 +1,24 @@
+import { initials } from "../lib/avatar";
+
+interface ServerIconProps {
+    server: { name: string; icon: string | null; color: string };
+    size?: number;
+}
+
+/** Icône d'un serveur : son emoji, ou ses initiales sur sa couleur. */
+export default function ServerIcon({ server, size = 48 }: ServerIconProps) {
+    return (
+        <span
+            className={server.icon ? "server-icon server-icon-emoji" : "server-icon"}
+            style={{
+                width: size,
+                height: size,
+                fontSize: server.icon ? size * 0.5 : size * 0.36,
+                background: server.color,
+            }}
+            aria-hidden="true"
+        >
+            {server.icon ?? initials(server.name)}
+        </span>
+    );
+}

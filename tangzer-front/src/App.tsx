@@ -2,50 +2,45 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import "./App.css";
 
+import Toasts from "./components/Toasts";
 import { AuthProvider } from "./context/AuthContext";
-import { useAuth } from "./context/auth";
-import { ChatProvider } from "./context/ChatContext";
-
+import { ToastProvider } from "./context/ToastContext";
+import AppShell from "./layout/AppShell";
+import DirectMessages from "./pages/DirectMessages";
+import ExplorePage from "./pages/ExplorePage";
+import HomeRedirect from "./pages/HomeRedirect";
+import InvitePage from "./pages/InvitePage";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Chat from "./pages/Chat";
-import DirectMessages from "./pages/DirectMessages";
-import Rooms from "./pages/Rooms";
-
+import ServerPage from "./pages/ServerPage";
 import ProtectedRoute from "./routes/ProtectedRoute";
-import AppLayout from "./layout/AppLayout";
-
-function AppRoutes() {
-    const { user } = useAuth();
-
-    return (
-        // On repart d'un état vide à chaque changement d'utilisateur.
-        <ChatProvider key={user?.id ?? "anonyme"}>
-            <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-
-                <Route element={<ProtectedRoute />}>
-                    <Route path="/app" element={<AppLayout />}>
-                        <Route index element={<Navigate to="/app/chat" replace />} />
-                        <Route path="chat" element={<Chat />} />
-                        <Route path="dm" element={<DirectMessages />} />
-                        <Route path="rooms" element={<Rooms />} />
-                    </Route>
-                </Route>
-
-                <Route path="*" element={<Navigate to="/app" replace />} />
-            </Routes>
-        </ChatProvider>
-    );
-}
 
 export default function App() {
     return (
         <BrowserRouter>
-            <AuthProvider>
-                <AppRoutes />
-            </AuthProvider>
+            <ToastProvider>
+                <AuthProvider>
+                    <Routes>
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/register" element={<Register />} />
+
+                        <Route element={<ProtectedRoute />}>
+                            <Route path="/invite/:code" element={<InvitePage />} />
+
+                            <Route path="/app" element={<AppShell />}>
+                                <Route index element={<HomeRedirect />} />
+                                <Route path="servers/:serverId" element={<ServerPage />} />
+                                <Route path="servers/:serverId/channels/:channelId" element={<ServerPage />} />
+                                <Route path="explore" element={<ExplorePage />} />
+                                <Route path="dm" element={<DirectMessages />} />
+                            </Route>
+                        </Route>
+
+                        <Route path="*" element={<Navigate to="/app" replace />} />
+                    </Routes>
+                    <Toasts />
+                </AuthProvider>
+            </ToastProvider>
         </BrowserRouter>
     );
 }

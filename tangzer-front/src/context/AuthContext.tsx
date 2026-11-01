@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 
 import * as authApi from "../api/auth";
 import { clearToken, getToken, onUnauthorized, setToken } from "../api/http";
+import { connect, disconnect } from "../realtime/stomp";
 import type { User } from "../types/api";
 import { AuthContext, type AuthContextValue } from "./auth";
 
@@ -32,6 +33,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .catch(() => clearToken())
             .finally(() => setLoading(false));
     }, []);
+
+    // Connexion temps réel tant qu'un utilisateur est connecté.
+    const userId = user?.id;
+    useEffect(() => {
+        const token = getToken();
+        if (!userId || !token) {
+            return;
+        }
+        connect(token);
+        return () => disconnect();
+    }, [userId]);
 
     const login = useCallback(async (username: string, password: string) => {
         const response = await authApi.login(username, password);

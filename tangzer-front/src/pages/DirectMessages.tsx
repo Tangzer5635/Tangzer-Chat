@@ -1,383 +1,215 @@
-import {useEffect, useRef, useState,} from "react";
-
-import { listUsers } from "../api/users";
-import type { User } from "../types/api";
-
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { useSearchParams } from "react-router-dom";
 
-import {sendPrivateMessage, sendReadReceipt, sendTyping,} from "../services/websocket";
-
-import { useChatContext } from "../context/chatContext";
-
-import type { ChatMessage } from "../types/ChatMessage";
-
+import { listUsers } from "../api/users";
+import Avatar from "../components/Avatar";
+import UserPanel from "../components/UserPanel";
+import { useAuth } from "../context/auth";
+import { useDirectMessages } from "../context/directMessages";
 import { randomId } from "../lib/id";
+import { formatTime } from "../lib/messages";
+import { sendPrivateMessage, sendReadReceipt, sendTyping } from "../realtime/directMessages";
+import type { DirectMessage, User } from "../types/api";
 
+/**
+ * /app/dm?with=username : messages privés en temps réel.
+ * (Version en mémoire : l'historique persistant arrive en phase 4.)
+ */
 export default function DirectMessages() {
-    const {
-        currentUser,
-        privateMessages,
-        addPrivateMessage,
-        getDmUnreadCount,
-        markDmRead,
-        messageStatuses,
-        typingUsers,
-    } = useChatContext();
+    const { user } = useAuth();
+    const me = user?.username ?? "";
+    const { messages, addMessage, getUnreadCount, markRead, statuses, typingUsers } = useDirectMessages();
 
-    const [searchParams] = useSearchParams();
-
-    const [recipient, setRecipient] =
-        useState<string | null>(searchParams.get("from"));
-
-    const [content, setContent] = useState("");
+    const [searchParams, setSearchParams] = useSearchParams();
+    const recipient = searchParams.get("with");
 
     const [users, setUsers] = useState<User[]>([]);
+    const [draft, setDraft] = useState("");
+    const bottomRef = useRef<HTMLDivElement>(null);
+    const typingTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const acknowledged = useRef(new Set<string>());
 
     useEffect(() => {
         listUsers().then(setUsers).catch(() => setUsers([]));
     }, []);
 
-    const displayNameOf = (username: string) =>
-        users.find((u) => u.username === username)?.displayName ?? username;
+    const isInConversation = (message: DirectMessage, other: string) =>
+        message.sender === other || (message.sender === me && message.recipient === other);
 
-    const bottomRef =
-        useRef<HTMLDivElement>(null);
+    const conversation = recipient ? messages.filter((m) => isInConversation(m, recipient)) : [];
 
-    const typingTimeoutRef =
-        useRef<ReturnType<typeof setTimeout> | null>(null);
-
-    useEffect(() => {
-        if (recipient) {
-            markDmRead(recipient);
-        }
-    }, [
-        recipient,
-        privateMessages,
-        markDmRead,
-    ]);
-
-    useEffect(() => {
-        bottomRef.current?.scrollIntoView({
-            behavior: "smooth",
-        });
-    }, [privateMessages, recipient]);
-
+    // Conversation ouverte : tout est lu, et on envoie un accusé de lecture une seule fois par message.
     useEffect(() => {
         if (!recipient) {
             return;
         }
-
-        privateMessages
-            .filter(
-                (msg) =>
-                    msg.sender === recipient &&
-                    msg.messageId
-            )
-            .forEach((msg) => {
-                sendReadReceipt(
-                    msg.messageId!,
-                    msg.sender
-                );
+        markRead(recipient);
+        messages
+            .filter((m) => m.sender === recipient && m.messageId && !acknowledged.current.has(m.messageId))
+            .forEach((m) => {
+                acknowledged.current.add(m.messageId!);
+                sendReadReceipt(m.messageId!, m.sender);
             });
-    }, [recipient, privateMessages]);
+    }, [recipient, messages, markRead]);
 
-    const stopTyping = (user: string) => {
-        sendTyping(user, false);
+    useEffect(() => {
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [conversation.length, recipient]);
 
-        if (typingTimeoutRef.current) {
-            clearTimeout(typingTimeoutRef.current);
-            typingTimeoutRef.current = null;
+    const displayNameOf = (username: string) => users.find((u) => u.username === username)?.displayName ?? username;
+    const userOf = (username: string) => users.find((u) => u.username === username);
+
+    const stopTyping = () => {
+        if (typingTimeout.current) {
+            clearTimeout(typingTimeout.current);
+            typingTimeout.current = null;
+            if (recipient) {
+                sendTyping(recipient, false);
+            }
         }
     };
 
-    const handleTyping = (
-        value: string
-    ) => {
-        setContent(value);
-
+    const onDraftChange = (value: string) => {
+        setDraft(value);
         if (!recipient) {
             return;
         }
-
-        sendTyping(recipient, true);
-
-        if (typingTimeoutRef.current) {
-            clearTimeout(typingTimeoutRef.current);
+        // On ne prévient qu'au début de la saisie, puis on arrête après 1,5 s sans frappe.
+        if (!typingTimeout.current) {
+            sendTyping(recipient, true);
+        } else {
+            clearTimeout(typingTimeout.current);
         }
-
-        typingTimeoutRef.current =
-            setTimeout(() => {
-                sendTyping(recipient, false);
-            }, 900);
+        typingTimeout.current = setTimeout(stopTyping, 1500);
     };
 
-    const handleSend = () => {
-        if (!recipient || !content.trim()) {
+    const send = () => {
+        const content = draft.trim();
+        if (!recipient || !content) {
             return;
         }
-
-        const text = content.trim();
         const messageId = randomId();
-
-        sendPrivateMessage(
-            recipient,
-            text,
-            messageId
-        );
-
-        // Le message apparaît immédiatement avec l'état "envoyé".
-        addPrivateMessage({
+        if (!sendPrivateMessage(recipient, content, messageId)) {
+            return;
+        }
+        addMessage({
             type: "CHAT",
-            content: text,
-            sender: currentUser,
+            content,
+            sender: me,
             recipient,
             roomId: null,
             timestamp: new Date().toISOString(),
             messageId,
         });
-
-        stopTyping(recipient);
-        setContent("");
+        stopTyping();
+        setDraft("");
     };
 
-    const isConversationMessage = (
-        msg: ChatMessage,
-        username: string
-    ) =>
-        msg.sender === username ||
-        (
-            msg.sender === currentUser &&
-            msg.recipient === username
-        );
+    const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            send();
+        }
+    };
 
-    const conversation = recipient
-        ? privateMessages.filter((msg) =>
-            isConversationMessage(
-                msg,
-                recipient
-            )
-        )
-        : [];
-
-    const isTyping =
-        recipient
-            ? typingUsers[recipient] === true
-            : false;
-
-    const renderStatus = (msg: ChatMessage) => {
-        if (msg.sender !== currentUser || !msg.messageId) {
+    const statusOf = (message: DirectMessage) => {
+        if (message.sender !== me || !message.messageId) {
             return null;
         }
-
-        const status =
-            messageStatuses[msg.messageId] ?? "SENT";
-
-        if (status === "READ") {
-            return (
-                <span
-                    className="message-status read"
-                    title="Lu"
-                >
-                    ✓✓
-                </span>
-            );
-        }
-
-        if (status === "DELIVERED") {
-            return (
-                <span
-                    className="message-status delivered"
-                    title="Distribué"
-                >
-                    ✓✓
-                </span>
-            );
-        }
-
-        return (
-            <span
-                className="message-status sent"
-                title="Envoyé"
-            >
-                ✓
-            </span>
-        );
+        const status = statuses[message.messageId] ?? "SENT";
+        const labels = { SENT: ["✓", "Envoyé"], DELIVERED: ["✓✓", "Distribué"], READ: ["✓✓", "Lu"] } as const;
+        const [icon, label] = labels[status];
+        return <span className={`message-status ${status.toLowerCase()}`} title={label}>{icon}</span>;
     };
 
+    const otherUsers = users.filter((u) => u.username !== me);
+
     return (
-        <div className="page">
-            <div className="rooms-layout">
-
-                <div className="rooms-list">
-                    <h2>Utilisateurs</h2>
-
-                    {users
-                        .map((account) => account.username)
-                        .filter(
-                            (u) =>
-                                u !== currentUser
-                        )
-                        .map((u) => {
-                            const conversationMessages =
-                                privateMessages.filter(
-                                    (msg) =>
-                                        isConversationMessage(
-                                            msg,
-                                            u
-                                        )
-                                );
-
-                            const lastMessage =
-                                conversationMessages[
-                                    conversationMessages.length - 1
-                                ];
-
-                            const unreadCount =
-                                getDmUnreadCount(u);
-
-                            return (
-                                <button
-                                    key={u}
-                                    onClick={() => {
-                                        setRecipient(u);
-                                        markDmRead(u);
-                                    }}
-                                    className={
-                                        recipient === u
-                                            ? "room-btn user-conversation active"
-                                            : "room-btn user-conversation"
-                                    }
-                                >
-                                    <div className="user-row">
-                                        <span className="user-name">
-                                            <span className="user-avatar">
-                                                👤
-                                            </span>
-                                            {displayNameOf(u)}
-                                        </span>
-
-                                        {unreadCount > 0 && (
-                                            <span className="user-unread-badge">
-                                                {unreadCount > 99
-                                                    ? "99+"
-                                                    : unreadCount}
-                                            </span>
-                                        )}
-                                    </div>
-
-                                    <div className="user-last-message">
-                                        {lastMessage
-                                            ? lastMessage.content
-                                            : "Aucun message"}
-                                    </div>
-                                </button>
-                            );
-                        })}
+        <>
+            <aside className="sidebar">
+                <div className="sidebar-header static">
+                    <span className="sidebar-title">Messages privés</span>
                 </div>
-
-                <div className="chat-box">
-
-                    <div className="chat-header">
-                        <h1>
-                            {recipient
-                                ? `💬 ${displayNameOf(recipient)}`
-                                : "Choisissez un utilisateur"}
-                        </h1>
-                    </div>
-
-                    <div className="messages">
-
-                        {conversation.map(
-                            (msg, i) => (
-                                <div
-                                    key={
-                                        msg.messageId ?? i
-                                    }
-                                    className={
-                                        msg.sender === currentUser
-                                            ? "message own"
-                                            : "message"
-                                    }
-                                >
-                                    <div className="message-meta">
-                                        <strong>
-                                            {displayNameOf(msg.sender)}
-                                        </strong>
-
-                                        <time
-                                            dateTime={
-                                                msg.timestamp
-                                            }
-                                        >
-                                            {new Date(
-                                                msg.timestamp
-                                            ).toLocaleTimeString(
-                                                [],
-                                                {
-                                                    hour: "2-digit",
-                                                    minute: "2-digit",
-                                                }
-                                            )}
-                                        </time>
-
-                                        {renderStatus(msg)}
-                                    </div>
-
-                                    <p>{msg.content}</p>
-                                </div>
-                            )
-                        )}
-
-                        {isTyping && (
-                            <div className="typing-indicator">
-                                <span className="typing-dots">
-                                    <i></i>
-                                    <i></i>
-                                    <i></i>
-                                </span>
-
-                                <span>
-                                    {recipient} est en train d’écrire…
-                                </span>
-                            </div>
-                        )}
-
-                        <div ref={bottomRef} />
-                    </div>
-
-                    {recipient && (
-                        <div className="message-input">
-
-                            <input
-                                value={content}
-                                onChange={(e) =>
-                                    handleTyping(
-                                        e.target.value
-                                    )
-                                }
-                                onBlur={() =>
-                                    stopTyping(recipient)
-                                }
-                                placeholder={`Message à ${recipient}...`}
-                                onKeyDown={(e) => {
-                                    if (
-                                        e.key === "Enter"
-                                    ) {
-                                        e.preventDefault();
-                                        handleSend();
-                                    }
-                                }}
-                            />
-
+                <div className="sidebar-scroll">
+                    {otherUsers.map((other) => {
+                        const last = messages.filter((m) => isInConversation(m, other.username)).at(-1);
+                        const unread = getUnreadCount(other.username);
+                        return (
                             <button
-                                onClick={handleSend}
+                                key={other.id}
+                                className={recipient === other.username ? "dm-item active" : "dm-item"}
+                                onClick={() => setSearchParams({ with: other.username })}
                             >
-                                Envoyer
+                                <Avatar user={other} size={32} />
+                                <span className="dm-item-text">
+                                    <strong>{other.displayName}</strong>
+                                    <small>{last ? last.content : `@${other.username}`}</small>
+                                </span>
+                                {unread > 0 && <span className="badge">{unread > 99 ? "99+" : unread}</span>}
                             </button>
-                        </div>
-                    )}
+                        );
+                    })}
                 </div>
-            </div>
-        </div>
+                <UserPanel />
+            </aside>
+
+            <section className="chat">
+                {recipient ? (
+                    <>
+                        <header className="chat-header">
+                            <span className="chat-header-hash">@</span>
+                            <h1>{displayNameOf(recipient)}</h1>
+                        </header>
+
+                        <div className="messages">
+                            <div className="channel-welcome">
+                                {userOf(recipient) && <Avatar user={userOf(recipient)!} size={80} />}
+                                <h2>{displayNameOf(recipient)}</h2>
+                                <p>C'est le début de ta conversation avec @{recipient}.</p>
+                            </div>
+
+                            {conversation.map((message, index) => (
+                                <article key={message.messageId ?? index} className="message-group">
+                                    <Avatar user={userOf(message.sender) ?? { id: 0, displayName: message.sender }} />
+                                    <div className="message-group-body">
+                                        <div className="message-meta">
+                                            <strong>{displayNameOf(message.sender)}</strong>
+                                            <time dateTime={message.timestamp}>{formatTime(message.timestamp)}</time>
+                                            {statusOf(message)}
+                                        </div>
+                                        <p className="message-content">{message.content}</p>
+                                    </div>
+                                </article>
+                            ))}
+
+                            {typingUsers[recipient] && (
+                                <div className="typing-indicator">
+                                    <span className="typing-dots"><i /><i /><i /></span>
+                                    {displayNameOf(recipient)} est en train d'écrire…
+                                </div>
+                            )}
+                            <div ref={bottomRef} />
+                        </div>
+
+                        <div className="composer">
+                            <textarea
+                                value={draft}
+                                onChange={(e) => onDraftChange(e.target.value)}
+                                onKeyDown={onKeyDown}
+                                onBlur={stopTyping}
+                                placeholder={`Envoyer un message à @${recipient}`}
+                                rows={1}
+                                maxLength={2000}
+                            />
+                        </div>
+                    </>
+                ) : (
+                    <div className="page-empty">
+                        <h2>Tes messages privés</h2>
+                        <p>Choisis quelqu'un dans la liste pour discuter en privé.</p>
+                    </div>
+                )}
+            </section>
+        </>
     );
 }
