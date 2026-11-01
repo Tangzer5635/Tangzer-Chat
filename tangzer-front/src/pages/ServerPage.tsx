@@ -62,10 +62,31 @@ export default function ServerPage() {
             <ChannelSidebar server={server} />
             <ChannelView
                 key={channel.id}
-                channel={channel}
+                channelId={channel.id}
                 canModerate={canManageServer(server.myRole)}
-                membersVisible={showMembers}
-                onToggleMembers={toggleMembers}
+                placeholder={`Envoyer un message dans #${channel.name}`}
+                header={
+                    <>
+                        <span className="chat-header-hash">#</span>
+                        <h1>{channel.name}</h1>
+                        {channel.topic && <span className="chat-header-topic">{channel.topic}</span>}
+                        <span className="spacer" />
+                        <button
+                            className={showMembers ? "icon-button active" : "icon-button"}
+                            onClick={toggleMembers}
+                            title={showMembers ? "Masquer les membres" : "Afficher les membres"}
+                        >
+                            👥
+                        </button>
+                    </>
+                }
+                welcome={
+                    <div className="channel-welcome">
+                        <div className="channel-welcome-icon">#</div>
+                        <h2>Bienvenue dans #{channel.name} !</h2>
+                        <p>{channel.topic ?? "C'est le début de ce salon. Dis bonjour 👋"}</p>
+                    </div>
+                }
             />
             {showMembers && <MemberList server={server} />}
         </>

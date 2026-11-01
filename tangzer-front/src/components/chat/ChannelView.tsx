@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer, useState } from "react";
+import { useCallback, useEffect, useReducer, useState, type ReactNode } from "react";
 
 import * as messagesApi from "../../api/messages";
 import { useAuth } from "../../context/auth";
@@ -9,7 +9,7 @@ import { typingLabel } from "../../lib/messageRows";
 import { initialMessagesState, messagesReducer } from "../../lib/messagesReducer";
 import { useSubscription } from "../../realtime/hooks";
 import { publish } from "../../realtime/stomp";
-import type { Channel, Message, Reaction, RealtimeEvent, User } from "../../types/api";
+import type { Message, Reaction, RealtimeEvent, User } from "../../types/api";
 import Composer from "./Composer";
 import MessageItem from "./MessageItem";
 import MessageList from "./MessageList";
@@ -21,14 +21,24 @@ let lastTemporaryId = 0;
 const nextTemporaryId = () => --lastTemporaryId;
 
 interface ChannelViewProps {
-    channel: Channel;
+    channelId: number;
+    /** Contenu de la barre du haut (nom du salon ou de la personne…). */
+    header: ReactNode;
+    /** Affiché tout en haut du fil, une fois tout l'historique chargé. */
+    welcome: ReactNode;
+    placeholder: string;
     canModerate: boolean;
-    membersVisible: boolean;
-    onToggleMembers: () => void;
+    /** Conversation privée : l'autre participant, pour l'accusé « Vu ». */
+    partner?: User;
+    partnerReadId?: number | null;
 }
 
-/** Un salon : historique, temps réel, envoi, réponses, édition, réactions. */
-export default function ChannelView({ channel, canModerate, membersVisible, onToggleMembers }: ChannelViewProps) {
+/**
+ * Un salon ou une conversation privée : historique, temps réel, envoi,
+ * réponses, édition, réactions, saisie et lecture.
+ */
+export default function ChannelView(props: ChannelViewProps) {
+    const { channelId, header, welcome, placeholder, canModerate, partner } = props;
     const { user } = useAuth();
     const me = user!;
     const { pushToast } = useToasts();
@@ -39,12 +49,13 @@ export default function ChannelView({ channel, canModerate, membersVisible, onTo
     const [editingId, setEditingId] = useState<number | null>(null);
     const [typing, setTyping] = useState<Record<number, { name: string; until: number }>>({});
     const [visible, setVisible] = useState(() => document.visibilityState === "visible");
+    const [partnerReadId, setPartnerReadId] = useState(props.partnerReadId ?? 0);
 
     // ------------------------------------------------------------ Chargement
 
     useEffect(() => {
         let cancelled = false;
-        messagesApi.fetchHistory(channel.id)
+        messagesApi.fetchHistory(channelId)
             .then((messages) => !cancelled && dispatch({
                 type: "historyLoaded", messages, hasMore: messages.length === messagesApi.PAGE_SIZE,
             }))
@@ -52,7 +63,7 @@ export default function ChannelView({ channel, canModerate, membersVisible, onTo
         return () => {
             cancelled = true;
         };
-    }, [channel.id, pushToast]);
+    }, [channelId, pushToast]);
 
     const loadOlder = useCallback(() => {
         const oldest = state.messages.find((m) => m.id > 0);
@@ -60,14 +71,14 @@ export default function ChannelView({ channel, canModerate, membersVisible, onTo
             return;
         }
         dispatch({ type: "olderLoading" });
-        messagesApi.fetchHistory(channel.id, oldest.id)
+        messagesApi.fetchHistory(channelId, oldest.id)
             .then((messages) => dispatch({ type: "olderLoaded", messages, hasMore: messages.length === messagesApi.PAGE_SIZE }))
             .catch(() => dispatch({ type: "olderLoaded", messages: [], hasMore: false }));
-    }, [channel.id, state.messages]);
+    }, [channelId, state.messages]);
 
     // ------------------------------------------------------------ Temps réel
 
-    useSubscription<RealtimeEvent>(`/topic/channels/${channel.id}`, (event) => {
+    useSubscription<RealtimeEvent>(`/topic/channels/${channelId}`, (event) => {
         switch (event.type) {
             case "MESSAGE_CREATED": {
                 const message = event.payload as Message;
@@ -88,6 +99,13 @@ export default function ChannelView({ channel, canModerate, membersVisible, onTo
             case "REACTIONS_UPDATED": {
                 const { messageId, reactions } = event.payload as { messageId: number; reactions: Reaction[] };
                 dispatch({ type: "reactionsUpdated", messageId, reactions });
+                break;
+            }
+            case "READ": {
+                const read = event.payload as { userId: number; lastReadMessageId: number };
+                if (partner && read.userId === partner.id) {
+                    setPartnerReadId((current) => Math.max(current, read.lastReadMessageId));
+                }
                 break;
             }
             case "TYPING": {
@@ -116,21 +134,21 @@ export default function ChannelView({ channel, canModerate, membersVisible, onTo
     // ------------------------------------------------------------ Lecture
 
     useEffect(() => {
-        setActiveChannel(channel.id);
+        setActiveChannel(channelId);
         const onVisibility = () => setVisible(document.visibilityState === "visible");
         document.addEventListener("visibilitychange", onVisibility);
         return () => {
             setActiveChannel(null);
             document.removeEventListener("visibilitychange", onVisibility);
         };
-    }, [channel.id, setActiveChannel]);
+    }, [channelId, setActiveChannel]);
 
     const lastConfirmedId = state.messages.filter((m) => m.id > 0).at(-1)?.id ?? null;
     useEffect(() => {
         if (state.loaded && visible && lastConfirmedId) {
-            markRead(channel.id, lastConfirmedId);
+            markRead(channelId, lastConfirmedId);
         }
-    }, [channel.id, state.loaded, visible, lastConfirmedId, markRead]);
+    }, [channelId, state.loaded, visible, lastConfirmedId, markRead]);
 
     // ------------------------------------------------------------ Actions
 
@@ -140,7 +158,7 @@ export default function ChannelView({ channel, canModerate, membersVisible, onTo
             type: "pendingAdded",
             message: {
                 id: nextTemporaryId(),
-                channelId: channel.id,
+                channelId: channelId,
                 author: me,
                 content,
                 createdAt: new Date().toISOString(),
@@ -154,7 +172,7 @@ export default function ChannelView({ channel, canModerate, membersVisible, onTo
         const replyToId = replyTo?.id ?? null;
         setReplyTo(null);
         try {
-            dispatch({ type: "received", message: await messagesApi.postMessage(channel.id, content, replyToId, nonce) });
+            dispatch({ type: "received", message: await messagesApi.postMessage(channelId, content, replyToId, nonce) });
         } catch (err) {
             dispatch({ type: "failed", nonce });
             pushToast(err instanceof Error ? err.message : "Message non envoyé.", { tone: "error" });
@@ -216,23 +234,16 @@ export default function ChannelView({ channel, canModerate, membersVisible, onTo
         }
     };
 
+    // « Vu » sous mon dernier message lu par l'autre participant.
+    const seenMessageId = partner
+        ? state.messages.filter((m) => m.author.id === me.id && m.id > 0 && m.id <= partnerReadId).at(-1)?.id
+        : undefined;
+
     const typingText = typingLabel(Object.values(typing).map((t) => t.name));
 
     return (
         <section className="chat">
-            <header className="chat-header">
-                <span className="chat-header-hash">#</span>
-                <h1>{channel.name}</h1>
-                {channel.topic && <span className="chat-header-topic">{channel.topic}</span>}
-                <span className="spacer" />
-                <button
-                    className={membersVisible ? "icon-button active" : "icon-button"}
-                    onClick={onToggleMembers}
-                    title={membersVisible ? "Masquer les membres" : "Afficher les membres"}
-                >
-                    👥
-                </button>
-            </header>
+            <header className="chat-header">{header}</header>
 
             {!state.loaded ? (
                 <div className="page-loading">Chargement des messages…</div>
@@ -242,13 +253,7 @@ export default function ChannelView({ channel, canModerate, membersVisible, onTo
                     hasMore={state.hasMore}
                     loadingOlder={state.loadingOlder}
                     onLoadOlder={loadOlder}
-                    welcome={
-                        <div className="channel-welcome">
-                            <div className="channel-welcome-icon">#</div>
-                            <h2>Bienvenue dans #{channel.name} !</h2>
-                            <p>{channel.topic ?? "C'est le début de ce salon. Dis bonjour 👋"}</p>
-                        </div>
-                    }
+                    welcome={welcome}
                     renderMessage={(message, showHeader) => (
                         <MessageItem
                             message={message}
@@ -264,6 +269,7 @@ export default function ChannelView({ channel, canModerate, membersVisible, onTo
                             onReact={(emoji) => react(message, emoji)}
                             onRetry={() => retry(message)}
                             onJumpTo={jumpTo}
+                            seen={message.id === seenMessageId}
                         />
                     )}
                 />
@@ -279,11 +285,11 @@ export default function ChannelView({ channel, canModerate, membersVisible, onTo
             </div>
 
             <Composer
-                placeholder={`Envoyer un message dans #${channel.name}`}
+                placeholder={placeholder}
                 replyTo={replyTo}
                 onCancelReply={() => setReplyTo(null)}
                 onSend={send}
-                onTyping={() => publish(`/app/channels/${channel.id}/typing`)}
+                onTyping={() => publish(`/app/channels/${channelId}/typing`)}
                 onEditLast={editLast}
             />
         </section>

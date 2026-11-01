@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import { changeMemberRole, kickMember, listMembers } from "../api/servers";
 import { useAuth } from "../context/auth";
+import { useDms } from "../context/dms";
 import { useToasts } from "../context/toasts";
 import { applyMemberEvent, groupMembersByRole } from "../lib/members";
 import { canChangeRole, canKick, ROLE_LABELS } from "../lib/permissions";
@@ -15,6 +16,7 @@ export default function MemberList({ server }: { server: Server }) {
     const { user } = useAuth();
     const navigate = useNavigate();
     const { pushToast } = useToasts();
+    const { openWith } = useDms();
 
     const [members, setMembers] = useState<Member[]>([]);
     const [selected, setSelected] = useState<number | null>(null);
@@ -81,7 +83,9 @@ export default function MemberList({ server }: { server: Server }) {
                             {selectedMember.user.id !== user?.id && (
                                 <button
                                     className="button-primary"
-                                    onClick={() => navigate(`/app/dm?with=${selectedMember.user.username}`)}
+                                    onClick={() => openWith(selectedMember.user.id)
+                                        .then((conversation) => navigate(`/app/dm/${conversation.channelId}`))
+                                        .catch((err) => pushToast(err instanceof Error ? err.message : "Conversation impossible.", { tone: "error" }))}
                                 >
                                     Message privé
                                 </button>

@@ -78,6 +78,14 @@ public class UserService {
         return userRepository.findAllByOrderByDisplayNameAsc();
     }
 
+    /** Recherche par pseudo ou nom affiché (20 résultats maximum). */
+    public List<User> search(String rawQuery) {
+        String query = Texts.clean(rawQuery);
+        return query.isEmpty()
+                ? listAll().stream().limit(20).toList()
+                : userRepository.findTop20ByUsernameContainingIgnoreCaseOrDisplayNameContainingIgnoreCaseOrderByDisplayNameAsc(query, query);
+    }
+
     static String normalizeDisplayName(String raw, String fallback) {
         String displayName = raw == null ? "" : raw.trim().replaceAll("\\s+", " ");
 

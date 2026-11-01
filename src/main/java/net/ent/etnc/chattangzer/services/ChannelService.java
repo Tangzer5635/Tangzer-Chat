@@ -38,6 +38,9 @@ public class ChannelService {
         Membership membership = accessService.requireManager(serverId, userId);
 
         ChannelType type = request.type() == null ? ChannelType.TEXT : request.type();
+        if (type == ChannelType.DM) {
+            throw ApiException.badRequest("Type de salon invalide");
+        }
         int position = (int) channelRepository.countByServerId(serverId);
 
         Channel channel = new Channel(membership.getServer(), normalizeName(request.name()), type, position);
@@ -82,6 +85,9 @@ public class ChannelService {
     private Channel requireManagedChannel(Long channelId, Long userId) {
         Channel channel = channelRepository.findById(channelId)
                 .orElseThrow(() -> ApiException.notFound("Salon introuvable"));
+        if (channel.isDirect()) {
+            throw ApiException.badRequest("Une conversation privée ne se modifie pas");
+        }
         accessService.requireManager(channel.getServer().getId(), userId);
         return channel;
     }

@@ -23,7 +23,8 @@ La feuille de route complète est dans [`docs/ROADMAP.md`](docs/ROADMAP.md).
   liens), mentions `@pseudo`, réponses, réactions emoji, modification (flèche ↑) et suppression
   (auteur ou modérateurs), indicateur « en train d'écrire », cartes pour les liens d'invitation.
 - **Non-lus** : salons en gras, badges de mentions, titre de l'onglet « (3) Tangzer ».
-- **Messages privés** avec accusés de lecture et indicateur de saisie.
+- **Messages privés** enregistrés, avec les mêmes possibilités que les salons, accusé « Vu »,
+  recherche d'utilisateurs, notifications avec aperçu (voir [`docs/MESSAGES_PRIVES.md`](docs/MESSAGES_PRIVES.md)).
 
 ## 🚀 Lancer avec Docker (recommandé)
 
@@ -128,7 +129,7 @@ Navigateur ──HTTPS──▶ nginx (frontend) ──▶ /api  ──▶ Sprin
 |---|---|
 | `/topic/servers/{id}` | événements d'un serveur (salons, membres, paramètres, activité) |
 | `/topic/channels/{id}` | événements d'un salon (messages, réactions, saisie) |
-| `/user/queue/events` | événements personnels (serveur rejoint, expulsion) |
+| `/user/queue/events` | événements personnels (serveur rejoint, expulsion, nouveau MP) |
 | `/user/queue/errors` | erreurs d'une action STOMP |
 
 Tous les événements ont la forme `{"type": "CHANNEL_CREATED", "payload": {...}}`.

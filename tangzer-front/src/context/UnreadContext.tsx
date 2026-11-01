@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, type ReactNode } from "react";
 
 import { fetchUnread, markChannelRead } from "../api/messages";
+import { toPlainText } from "../lib/markdown";
 import { initialUnreadState, unreadReducer } from "../lib/unreadReducer";
 import { useSubscription } from "../realtime/hooks";
-import type { ChannelActivity, RealtimeEvent, Server } from "../types/api";
+import type { ChannelActivity, DmActivity, RealtimeEvent, Server } from "../types/api";
 import { useAuth } from "./auth";
 import { useServers } from "./servers";
 import { useToasts } from "./toasts";
@@ -57,6 +58,23 @@ export function UnreadProvider({ children }: { children: ReactNode }) {
             });
         }
     }, [user, pushToast]);
+
+    // Messages privés : chaque message reçu compte comme une notification.
+    useSubscription<RealtimeEvent>("/user/queue/events", (event) => {
+        if (event.type !== "DM_ACTIVITY" || !user) {
+            return;
+        }
+        const { channelId, message } = event.payload as DmActivity;
+        const viewing = channelId === activeChannel.current && document.visibilityState === "visible";
+        if (message.author.id === user.id || viewing) {
+            return;
+        }
+        dispatch({ type: "activity", channelId, mentioned: false });
+        const preview = toPlainText(message.content);
+        pushToast(`💬 ${message.author.displayName} : ${preview.length > 60 ? `${preview.slice(0, 60)}…` : preview}`, {
+            link: `/app/dm/${channelId}`,
+        });
+    });
 
     const setActiveChannel = useCallback((channelId: number | null) => {
         activeChannel.current = channelId;

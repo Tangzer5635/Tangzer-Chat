@@ -113,28 +113,22 @@ export interface RealtimeEvent<T = unknown> {
     payload: T;
 }
 
-// ------------------------------------------------- Messages privés (temporaire)
+// ---------------------------------------------------------- Messages privés
 
-export type MessageDeliveryStatus = "SENT" | "DELIVERED" | "READ";
-
-export interface DirectMessage {
-    type: "CHAT" | "JOIN" | "LEAVE";
-    content: string;
-    sender: string;
-    roomId: string | null;
-    timestamp: string;
-    messageId?: string;
-    recipient?: string | null;
+/** Une conversation privée vue par l'un des deux participants. */
+export interface DmConversation {
+    channelId: number;
+    otherUser: User;
+    lastMessage: MessagePreview | null;
+    lastMessageAt: string | null;
+    unreadCount: number;
+    /** Jusqu'où l'autre a lu (pour afficher « Vu »). */
+    otherLastReadMessageId: number | null;
 }
 
-export interface MessageStatus {
-    messageId: string;
-    status: MessageDeliveryStatus;
-    username: string;
-}
-
-export interface TypingStatus {
-    username: string;
-    recipient: string;
-    typing: boolean;
+/** Nouveau message privé (événement DM_ACTIVITY sur /user/queue/events). */
+export interface DmActivity {
+    channelId: number;
+    participants: User[];
+    message: Message;
 }

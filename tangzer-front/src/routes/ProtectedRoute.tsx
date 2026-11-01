@@ -1,7 +1,7 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 
 import { useAuth } from "../context/auth";
-import { DirectMessagesProvider } from "../context/DirectMessagesContext";
+import { DmProvider } from "../context/DmContext";
 import { ServersProvider } from "../context/ServersContext";
 import { UnreadProvider } from "../context/UnreadContext";
 
@@ -25,9 +25,9 @@ export default function ProtectedRoute() {
     return (
         <ServersProvider key={user.id}>
             <UnreadProvider>
-                <DirectMessagesProvider>
+                <DmProvider>
                     <Outlet />
-                </DirectMessagesProvider>
+                </DmProvider>
             </UnreadProvider>
         </ServersProvider>
     );

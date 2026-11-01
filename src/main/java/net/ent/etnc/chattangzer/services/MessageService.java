@@ -2,6 +2,7 @@ package net.ent.etnc.chattangzer.services;
 
 import net.ent.etnc.chattangzer.exceptions.ApiException;
 import net.ent.etnc.chattangzer.models.dtos.ChannelActivityDto;
+import net.ent.etnc.chattangzer.models.dtos.DmActivityDto;
 import net.ent.etnc.chattangzer.models.dtos.MessageDto;
 import net.ent.etnc.chattangzer.models.dtos.MessagePreviewDto;
 import net.ent.etnc.chattangzer.models.dtos.MessageRequests;
@@ -107,11 +108,14 @@ public class MessageService {
         }
 
         messageRepository.save(message);
+        if (channel.isDirect()) {
+            channel.setLastMessageAt(message.getCreatedAt());
+        }
         markRead(channelId, userId, message.getId());
 
         MessageDto dto = toDto(message, List.of(), request.nonce());
         realtime.toChannel(channelId, "MESSAGE_CREATED", dto);
-        announceActivity(channel, message);
+        announceActivity(channel, message, dto);
         return dto;
     }
 
@@ -178,7 +182,7 @@ public class MessageService {
 
     /** Enregistre que j'ai lu le salon jusqu'à ce message (jamais en arrière). */
     public void markRead(Long channelId, Long userId, Long messageId) {
-        accessService.requireChannel(channelId, userId);
+        Channel channel = accessService.requireChannel(channelId, userId);
         if (messageId == null) {
             return;
         }
@@ -187,14 +191,26 @@ public class MessageService {
         if (messageId > read.getLastReadMessageId()) {
             read.setLastReadMessageId(messageId);
             readRepository.save(read);
+            // En message privé, l'autre voit « Vu » sous son message.
+            if (channel.isDirect()) {
+                realtime.toChannel(channelId, "READ",
+                        Map.of("channelId", channelId, "userId", userId, "lastReadMessageId", messageId));
+            }
         }
     }
 
     // ------------------------------------------------------------------ Outils
 
-    /** Prévient les membres du serveur qu'il y a du nouveau dans ce salon (badges, mentions). */
-    private void announceActivity(Channel channel, Message message) {
-        if (channel.getServer() == null) {
+    /**
+     * Prévient qu'il y a du nouveau : les membres du serveur (badges, mentions),
+     * ou les deux participants d'une conversation privée (liste des MP, notification).
+     */
+    private void announceActivity(Channel channel, Message message, MessageDto dto) {
+        if (channel.isDirect()) {
+            DmActivityDto activity = new DmActivityDto(channel.getId(),
+                    List.of(UserDto.from(channel.getDmUser1()), UserDto.from(channel.getDmUser2())), dto);
+            realtime.toUser(channel.getDmUser1().getUsername(), "DM_ACTIVITY", activity);
+            realtime.toUser(channel.getDmUser2().getUsername(), "DM_ACTIVITY", activity);
             return;
         }
         Long serverId = channel.getServer().getId();

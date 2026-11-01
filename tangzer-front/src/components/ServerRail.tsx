@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 
-import { useDirectMessages } from "../context/directMessages";
+import { useDms } from "../context/dms";
 import { useServers } from "../context/servers";
 import { useUnread } from "../context/unread";
 import { sumFor } from "../lib/unreadReducer";
@@ -11,8 +11,9 @@ import ServerIcon from "./ServerIcon";
 /** Colonne de gauche : messages privés, mes serveurs, créer, explorer. */
 export default function ServerRail() {
     const { servers } = useServers();
-    const { unreadCount } = useDirectMessages();
+    const { conversations } = useDms();
     const { counts, mentions } = useUnread();
+    const unreadCount = sumFor(counts, conversations.map((c) => c.channelId));
     const [creating, setCreating] = useState(false);
 
     const railClass = ({ isActive }: { isActive: boolean }) => (isActive ? "rail-item active" : "rail-item");

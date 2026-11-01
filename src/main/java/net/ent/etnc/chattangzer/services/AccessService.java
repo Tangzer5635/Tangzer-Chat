@@ -34,8 +34,15 @@ public class AccessService {
 
     public boolean canAccessChannel(Long channelId, Long userId) {
         return channelRepository.findById(channelId)
-                .map(channel -> isMember(channel.getServer().getId(), userId))
+                .map(channel -> canAccess(channel, userId))
                 .orElse(false);
+    }
+
+    /** Salon de serveur : il faut être membre. Conversation privée : il faut en être l'un des deux participants. */
+    public boolean canAccess(Channel channel, Long userId) {
+        return channel.isDirect()
+                ? channel.isParticipant(userId)
+                : isMember(channel.getServer().getId(), userId);
     }
 
     /** Membre du serveur, sinon 403 (ou 404 si le serveur n'existe pas). */
@@ -53,10 +60,16 @@ public class AccessService {
         return membership;
     }
 
-    /** Salon existant et accessible, sinon 404 / 403. */
+    /** Salon (ou conversation privée) existant et accessible, sinon 404 / 403. */
     public Channel requireChannel(Long channelId, Long userId) {
         Channel channel = channelRepository.findById(channelId)
                 .orElseThrow(() -> ApiException.notFound("Salon introuvable"));
+        if (channel.isDirect()) {
+            if (!channel.isParticipant(userId)) {
+                throw ApiException.forbidden("Cette conversation ne te concerne pas");
+            }
+            return channel;
+        }
         requireMembership(channel.getServer().getId(), userId);
         return channel;
     }
