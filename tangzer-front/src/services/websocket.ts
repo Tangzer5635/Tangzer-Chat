@@ -6,6 +6,7 @@ import type {
     TypingStatus,
 } from "../types/ChatMessage";
 import { randomId } from "../lib/id";
+import { getToken, notifyUnauthorized } from "../api/http";
 
 let messageHandler:
     ((msg: ChatMessage) => void) | null = null;
@@ -108,11 +109,13 @@ const client = new Client({
     onDisconnect: () =>
         console.log("STOMP déconnecté"),
 
-    onStompError: (frame) =>
-        console.error(
-            "Erreur STOMP :",
-            frame.headers["message"]
-        ),
+    onStompError: (frame) => {
+        console.error("Erreur STOMP :", frame.headers["message"]);
+        // Token refusé à la connexion : la session n'est plus valide.
+        if (frame.headers["message"]?.includes("JWT")) {
+            notifyUnauthorized();
+        }
+    },
 
     onWebSocketError: (error) =>
         console.error("Erreur WebSocket :", error),
@@ -131,7 +134,7 @@ export function connectWebSocket(
     messageStatusHandler = onMessageStatus ?? null;
     typingHandler = onTyping ?? null;
 
-    const token = localStorage.getItem("jwt");
+    const token = getToken();
 
     if (!token) {
         console.error("Aucun JWT trouvé");

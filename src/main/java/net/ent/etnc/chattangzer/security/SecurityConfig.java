@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -32,20 +33,23 @@ import java.util.List;
 public class SecurityConfig {
 
     private final UserDetailsService userDetailsService;
+    private final PasswordEncoder passwordEncoder;
     private final List<String> allowedOrigins;
 
     public SecurityConfig(
             UserDetailsService userDetailsService,
+            PasswordEncoder passwordEncoder,
             @Value("${app.allowed-origins}") List<String> allowedOrigins
     ) {
         this.userDetailsService = userDetailsService;
+        this.passwordEncoder = passwordEncoder;
         this.allowedOrigins = allowedOrigins;
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(HttpSecurity httpSecurity) {
+    public AuthenticationManager authenticationManager(HttpSecurity httpSecurity) throws Exception {
         AuthenticationManagerBuilder builder = httpSecurity.getSharedObject(AuthenticationManagerBuilder.class);
-        builder.userDetailsService(userDetailsService);
+        builder.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder);
         return builder.build();
     }
 

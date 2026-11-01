@@ -1,0 +1,12 @@
+# Développement uniquement : publie PostgreSQL sur la machine pour lancer
+# le backend hors Docker (./mvnw spring-boot:run).
+#
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d db
+#
+# Si le port 5432 est déjà pris (PostgreSQL installé en local, port réservé
+# par Windows…), choisir un autre port dans .env, par exemple DB_PORT=5433,
+# et lancer le backend avec DB_URL=jdbc:postgresql://localhost:5433/tangzer.
+services:
+  db:
+    ports:
+      - "127.0.0.1:${DB_PORT:-5432}:5432"

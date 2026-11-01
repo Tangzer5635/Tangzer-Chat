@@ -1,8 +1,12 @@
 import {
     useCallback,
+    useEffect,
     useMemo,
     useState,
 } from "react";
+
+import { connectWebSocket, disconnectWebSocket } from "../services/websocket";
+import { useAuth } from "./auth";
 
 import type {
     ChatMessage,
@@ -19,7 +23,8 @@ export function ChatProvider({
 }: {
     children: React.ReactNode;
 }) {
-    const [currentUser, setCurrentUser] = useState("");
+    const { user } = useAuth();
+    const currentUser = user?.username ?? "";
 
     const [publicMessages, setPublicMessages] =
         useState<ChatMessage[]>([]);
@@ -191,11 +196,25 @@ export function ChatProvider({
         });
     }, [privateMessages, currentUser]);
 
+    // Connexion temps réel tant qu'un utilisateur est connecté.
+    useEffect(() => {
+        if (!user) {
+            return;
+        }
+        connectWebSocket(
+            addPublicMessage,
+            addPrivateMessage,
+            pushNotification,
+            updateMessageStatus,
+            updateTypingStatus
+        );
+        return () => disconnectWebSocket();
+    }, [user, addPublicMessage, addPrivateMessage, pushNotification, updateMessageStatus, updateTypingStatus]);
+
     return (
         <ChatContext.Provider
             value={{
                 currentUser,
-                setCurrentUser,
 
                 publicMessages,
                 addPublicMessage,

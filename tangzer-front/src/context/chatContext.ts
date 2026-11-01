@@ -14,7 +14,6 @@ export interface Notification {
 
 export interface ChatContextValue {
     currentUser: string;
-    setCurrentUser: (u: string) => void;
 
     publicMessages: ChatMessage[];
     addPublicMessage: (m: ChatMessage) => void;

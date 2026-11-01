@@ -1,16 +1,15 @@
 import { NavLink, useNavigate } from "react-router-dom";
 
-import { disconnectWebSocket } from "../services/websocket";
-import { logout } from "../services/auth";
+import { useAuth } from "../context/auth";
 import { useChatContext } from "../context/chatContext";
 
 export default function Navbar() {
 
     const navigate = useNavigate();
     const { unreadDmCount } = useChatContext();
+    const { user, logout } = useAuth();
 
     const handleLogout = () => {
-        disconnectWebSocket();
         logout();
         navigate("/login", { replace: true });
     };
@@ -50,6 +49,7 @@ export default function Navbar() {
                 >Salons</NavLink>
 
             </div>
+            <span className="navbar-user">{user?.displayName}</span>
             <button className="navbar-logout" onClick={handleLogout}>Déconnexion</button>
         </nav>
     );

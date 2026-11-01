@@ -1,127 +1,79 @@
-import { useState } from "react";
-import type { FormEvent } from "react";
+import { useState, type FormEvent } from "react";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 
-import { useNavigate } from "react-router-dom";
-
-import { login } from "../services/auth";
-import { connectWebSocket } from "../services/websocket";
-import { useChatContext } from "../context/chatContext";
+import { useAuth } from "../context/auth";
+import AuthLayout from "../layout/AuthLayout";
 
 export default function Login() {
-
+    const { user, login } = useAuth();
     const navigate = useNavigate();
-
-    const {
-        setCurrentUser,
-        addPublicMessage,
-        addPrivateMessage,
-        pushNotification,
-        updateMessageStatus,
-        updateTypingStatus,
-    } = useChatContext();
+    const location = useLocation();
+    const from = (location.state as { from?: string } | null)?.from ?? "/app";
 
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const [submitting, setSubmitting] = useState(false);
 
-    const handleLogin = async (e: FormEvent) => {
+    if (user) {
+        return <Navigate to={from} replace />;
+    }
 
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
 
-        const name = username.trim();
-
-        if (!name || !password) {
+        if (!username.trim() || !password) {
             setError("Veuillez remplir tous les champs.");
             return;
         }
 
+        setSubmitting(true);
+        setError("");
         try {
-
-            setError("");
-
-            await login(name, password);
-
-            setCurrentUser(name);
-
-            connectWebSocket(
-                addPublicMessage,
-                addPrivateMessage,
-                pushNotification,
-                updateMessageStatus,
-                updateTypingStatus
-            );
-
-            navigate("/app/chat");
-
+            await login(username.trim(), password);
+            navigate(from, { replace: true });
         } catch (err) {
-            console.error("Erreur login :", err);
-            setError("Identifiant ou mot de passe incorrect.");
+            setError(err instanceof Error ? err.message : "Connexion impossible.");
+        } finally {
+            setSubmitting(false);
         }
     };
 
     return (
-        <div className="login-page">
+        <AuthLayout>
+            <h2>Ha, te revoilà !</h2>
+            <p className="login-subtitle">Nous sommes si heureux de te revoir !</p>
 
-            <div className="login-brand">
-                <img
-                    src="/favicon.jpg"
-                    alt="Tangzer"
-                    className="login-logo"
+            <form onSubmit={handleSubmit}>
+                <label htmlFor="login-username">Nom d'utilisateur</label>
+                <input
+                    id="login-username"
+                    type="text"
+                    autoComplete="username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    autoFocus
                 />
 
-                <h1>Tangzer</h1>
+                <label htmlFor="login-password">Mot de passe</label>
+                <input
+                    id="login-password"
+                    type="password"
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                />
 
-                <p>
-                    Messagerie instantanée
-                    <br />
-                    sécurisée par JWT.
-                </p>
-            </div>
+                {error && <p className="login-error">{error}</p>}
 
-            <div className="login-form-side">
+                <button type="submit" disabled={submitting}>
+                    {submitting ? "Connexion…" : "Se connecter"}
+                </button>
+            </form>
 
-                <div className="login-box">
-
-                    <h2>Connexion</h2>
-
-                    <form onSubmit={handleLogin}>
-
-                        <label>Nom d'utilisateur</label>
-                        <input
-                            type="text"
-                            value={username}
-                            onChange={(e) =>
-                                setUsername(e.target.value)
-                            }
-                            placeholder="admin"
-                        />
-
-                        <label>Mot de passe</label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) =>
-                                setPassword(e.target.value)
-                            }
-                            placeholder="••••••••"
-                        />
-
-                        {error && (
-                            <p className="login-error">
-                                {error}
-                            </p>
-                        )}
-
-                        <button type="submit">
-                            Se connecter
-                        </button>
-
-                    </form>
-
-                </div>
-
-            </div>
-
-        </div>
+            <p className="login-switch">
+                Besoin d'un compte ? <Link to="/register" state={location.state}>S'inscrire</Link>
+            </p>
+        </AuthLayout>
     );
 }

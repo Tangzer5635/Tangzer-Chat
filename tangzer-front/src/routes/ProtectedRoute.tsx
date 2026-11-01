@@ -1,13 +1,18 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 
-import { useChatContext } from "../context/chatContext";
+import { useAuth } from "../context/auth";
+
 export default function ProtectedRoute() {
+    const { user, loading } = useAuth();
+    const location = useLocation();
 
-    const token = localStorage.getItem("jwt");
-    const { currentUser } = useChatContext();
+    if (loading) {
+        return <div className="splash">Connexion à Tangzer…</div>;
+    }
 
-    if (!token || !currentUser) {
-        return <Navigate to="/login" replace />;
+    if (!user) {
+        // On mémorise la page demandée pour y revenir après la connexion.
+        return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
     }
 
     return <Outlet />;
