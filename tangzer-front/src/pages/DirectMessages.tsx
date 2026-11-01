@@ -1,5 +1,8 @@
 import {useEffect, useRef, useState,} from "react";
 
+import { listUsers } from "../api/users";
+import type { User } from "../types/api";
+
 import { useSearchParams } from "react-router-dom";
 
 import {sendPrivateMessage, sendReadReceipt, sendTyping,} from "../services/websocket";
@@ -9,8 +12,6 @@ import { useChatContext } from "../context/chatContext";
 import type { ChatMessage } from "../types/ChatMessage";
 
 import { randomId } from "../lib/id";
-
-const USERS = ["admin", "user", "tanguy", "pigloo"];
 
 export default function DirectMessages() {
     const {
@@ -29,6 +30,15 @@ export default function DirectMessages() {
         useState<string | null>(searchParams.get("from"));
 
     const [content, setContent] = useState("");
+
+    const [users, setUsers] = useState<User[]>([]);
+
+    useEffect(() => {
+        listUsers().then(setUsers).catch(() => setUsers([]));
+    }, []);
+
+    const displayNameOf = (username: string) =>
+        users.find((u) => u.username === username)?.displayName ?? username;
 
     const bottomRef =
         useRef<HTMLDivElement>(null);
@@ -201,7 +211,8 @@ export default function DirectMessages() {
                 <div className="rooms-list">
                     <h2>Utilisateurs</h2>
 
-                    {USERS
+                    {users
+                        .map((account) => account.username)
                         .filter(
                             (u) =>
                                 u !== currentUser
@@ -242,7 +253,7 @@ export default function DirectMessages() {
                                             <span className="user-avatar">
                                                 👤
                                             </span>
-                                            {u}
+                                            {displayNameOf(u)}
                                         </span>
 
                                         {unreadCount > 0 && (
@@ -269,7 +280,7 @@ export default function DirectMessages() {
                     <div className="chat-header">
                         <h1>
                             {recipient
-                                ? `💬 ${recipient}`
+                                ? `💬 ${displayNameOf(recipient)}`
                                 : "Choisissez un utilisateur"}
                         </h1>
                     </div>
@@ -290,7 +301,7 @@ export default function DirectMessages() {
                                 >
                                     <div className="message-meta">
                                         <strong>
-                                            {msg.sender}
+                                            {displayNameOf(msg.sender)}
                                         </strong>
 
                                         <time

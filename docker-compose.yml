@@ -1,12 +1,37 @@
 name: tangzer
 
 services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: tangzer
+      POSTGRES_USER: ${DB_USERNAME:-tangzer}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-tangzer}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    # Exposé uniquement en local, pour lancer le backend hors Docker en dev.
+    ports:
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
   backend:
     build: .
+    depends_on:
+      db:
+        condition: service_healthy
     environment:
+      DB_URL: jdbc:postgresql://db:5432/tangzer
+      DB_USERNAME: ${DB_USERNAME:-tangzer}
+      DB_PASSWORD: ${DB_PASSWORD:-tangzer}
       JWT_SECRET: ${JWT_SECRET:-change-me-in-the-env-file-this-is-not-a-real-secret-0123456789}
       JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-604800000}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-*}
+      APP_DEMO_DATA: ${APP_DEMO_DATA:-true}
     restart: unless-stopped
 
   frontend:
@@ -22,3 +47,6 @@ services:
     volumes:
       - ./certs:/etc/nginx/certs
     restart: unless-stopped
+
+volumes:
+  db-data:

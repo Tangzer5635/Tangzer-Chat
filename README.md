@@ -21,6 +21,7 @@ l'avertissement du navigateur une première fois).
 |------------|---------------------------------------------------------|
 | `frontend` | nginx : sert le front React, relaie `/api` et `/ws`     |
 | `backend`  | API Spring Boot + WebSocket STOMP (non exposé)          |
+| `db`       | PostgreSQL 16 (données dans le volume `db-data`)        |
 
 ### Accès depuis un autre appareil du réseau
 
@@ -39,7 +40,13 @@ dans `certs/`.
 
 ## 🛠️ Lancer en développement
 
-Backend (port 8080) :
+Base de données seule (PostgreSQL sur `localhost:5432`) :
+
+```bash
+docker compose up -d db
+```
+
+Backend (port 8080, applique les migrations Flyway au démarrage) :
 
 ```bash
 ./mvnw spring-boot:run
@@ -53,7 +60,10 @@ npm install
 npm run dev
 ```
 
-## 🔑 Comptes de démonstration
+## 🔑 Comptes
+
+Chacun peut créer son compte depuis la page d'inscription. Les comptes de
+démonstration suivants sont créés au démarrage (désactivable avec `APP_DEMO_DATA=false`) :
 
 | Utilisateur | Mot de passe |
 |---|---|
@@ -66,6 +76,9 @@ npm run dev
 
 | Variable | Défaut | Rôle |
 |---|---|---|
+| `DB_URL` | `jdbc:postgresql://localhost:5432/tangzer` | Base PostgreSQL (fixé par compose) |
+| `DB_USERNAME` / `DB_PASSWORD` | `tangzer` / `tangzer` | Identifiants de la base |
+| `APP_DEMO_DATA` | `true` | Crée les comptes de démonstration |
 | `JWT_SECRET` | secret de dev | Clé de signature des JWT (32 caractères min.) |
 | `JWT_EXPIRATION_MS` | `604800000` (7 j) | Durée de validité d'une session |
 | `ALLOWED_ORIGINS` | `*` | Origines autorisées (CORS + WebSocket) |
@@ -75,7 +88,7 @@ npm run dev
 ## 🧪 Tests
 
 ```bash
-./mvnw test                      # backend
+./mvnw test                      # backend (H2 en mémoire, aucune base à installer)
 cd tangzer-front && npm test     # frontend (Vitest)
 ```
 
@@ -94,14 +107,19 @@ Navigateur ──HTTPS──▶ nginx (frontend) ──▶ /api  ──▶ Sprin
 
 ```text
 src/main/java/net/ent/etnc/chattangzer/
-├── config/        configuration (WebSocket…)
+├── config/        configuration (WebSocket, mots de passe, données de démo)
 ├── controllers/   REST et STOMP
-├── models/        DTO
+├── exceptions/    erreurs métier → JSON {"message": "..."}
+├── models/        entités JPA et DTO
+├── repositories/  accès base (Spring Data JPA)
 ├── security/      Spring Security + JWT
 └── services/      logique métier
 
+src/main/resources/db/migration/   schéma SQL versionné (Flyway)
+
 tangzer-front/src/
+├── api/         appels REST (client http.ts commun)
 ├── components/  context/  layout/  pages/  routes/
 ├── lib/         fonctions pures testées
-└── services/    REST + STOMP
+└── services/    STOMP
 ```

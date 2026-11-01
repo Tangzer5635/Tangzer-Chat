@@ -1,0 +1,9 @@
+# Profil "test" : base H2 en mémoire en mode PostgreSQL, migrations Flyway incluses.
+spring:
+  datasource:
+    url: jdbc:h2:mem:tangzer;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+
+app:
+  demo-data: false
