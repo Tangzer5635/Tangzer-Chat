@@ -64,11 +64,16 @@ dans `certs/`.
 
 ## 🛠️ Lancer en développement
 
-Base de données seule (PostgreSQL sur `localhost:5432`) :
+Base de données seule, publiée sur `localhost:5432` grâce à `docker-compose.dev.yml`
+(en mode « tout Docker », la base n'est pas exposée sur la machine) :
 
 ```bash
-docker compose up -d db
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d db
 ```
+
+Si le port 5432 est déjà pris (PostgreSQL installé en local, port réservé par Windows),
+mettre `DB_PORT=5433` dans `.env` et lancer le backend avec
+`DB_URL=jdbc:postgresql://localhost:5433/tangzer`.
 
 Backend (port 8080, applique les migrations Flyway au démarrage) :
 
