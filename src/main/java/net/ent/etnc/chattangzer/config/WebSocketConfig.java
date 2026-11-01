@@ -1,5 +1,6 @@
 package net.ent.etnc.chattangzer.config;
 
+import net.ent.etnc.chattangzer.security.StompSubscriptionGuard;
 import net.ent.etnc.chattangzer.security.jwt.JwtChannelInterceptor;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -24,19 +25,23 @@ import java.util.List;
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final JwtChannelInterceptor jwtChannelInterceptor;
+    private final StompSubscriptionGuard subscriptionGuard;
     private final List<String> allowedOrigins;
 
     public WebSocketConfig(
             JwtChannelInterceptor jwtChannelInterceptor,
+            StompSubscriptionGuard subscriptionGuard,
             @Value("${app.allowed-origins}") List<String> allowedOrigins
     ) {
         this.jwtChannelInterceptor = jwtChannelInterceptor;
+        this.subscriptionGuard = subscriptionGuard;
         this.allowedOrigins = allowedOrigins;
     }
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(jwtChannelInterceptor);
+        // 1. authentifie la connexion, 2. vérifie chaque abonnement.
+        registration.interceptors(jwtChannelInterceptor, subscriptionGuard);
     }
 
     @Override

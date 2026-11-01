@@ -1,7 +1,13 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 
 import { useAuth } from "../context/auth";
+import { DirectMessagesProvider } from "../context/DirectMessagesContext";
+import { ServersProvider } from "../context/ServersContext";
 
+/**
+ * Pages réservées aux utilisateurs connectés.
+ * Les données de l'utilisateur (serveurs, MP) repartent de zéro à chaque connexion.
+ */
 export default function ProtectedRoute() {
     const { user, loading } = useAuth();
     const location = useLocation();
@@ -15,5 +21,11 @@ export default function ProtectedRoute() {
         return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
     }
 
-    return <Outlet />;
+    return (
+        <ServersProvider key={user.id}>
+            <DirectMessagesProvider>
+                <Outlet />
+            </DirectMessagesProvider>
+        </ServersProvider>
+    );
 }

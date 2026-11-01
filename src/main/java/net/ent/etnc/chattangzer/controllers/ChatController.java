@@ -9,7 +9,6 @@ import net.ent.etnc.chattangzer.models.dtos.TypingStatus;
 
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
@@ -17,6 +16,9 @@ import java.security.Principal;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * Messages privés en temps réel (en mémoire, réécrits en phase 4).
+ */
 @Controller
 public class ChatController {
 
@@ -24,22 +26,6 @@ public class ChatController {
 
     public ChatController(SimpMessagingTemplate messagingTemplate) {
         this.messagingTemplate = messagingTemplate;
-    }
-
-    @MessageMapping("/chat.send")
-    @SendTo("/topic/public")
-    public ChatMessage sendMessage(
-            @Payload ChatMessage message,
-            Principal user
-    ) {
-        message.setSender(user.getName());
-        message.setTimestamp(Instant.now());
-
-        if (message.getMessageId() == null || message.getMessageId().isBlank()) {
-            message.setMessageId(UUID.randomUUID().toString());
-        }
-
-        return message;
     }
 
     @MessageMapping("/chat.direct")

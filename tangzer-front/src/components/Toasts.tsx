@@ -1,33 +1,31 @@
 import { useNavigate } from "react-router-dom";
 
-import { useChatContext } from "../context/chatContext";
+import { useToasts } from "../context/toasts";
 
 export default function Toasts() {
-
     const navigate = useNavigate();
+    const { toasts, dismissToast } = useToasts();
 
-    const {notifications, removeNotification,} = useChatContext();
-    if (notifications.length === 0) {return null;}
-
-    const handleClick = (n: typeof notifications[0]) => {
-        removeNotification(n.id);
-        if (n.link) {navigate(n.link);}
-    };
+    if (toasts.length === 0) {
+        return null;
+    }
 
     return (
-        <div className="toast-container">
-            {notifications.map((n) => (
-                <div key={n.id} className={
-                        n.link
-                            ? "toast toast-clickable"
-                            : "toast"
-                    }
-                    onClick={() => handleClick(n)}
-                ><span>{n.text}</span>
-                </div>
-
+        <div className="toast-container" role="status">
+            {toasts.map((toast) => (
+                <button
+                    key={toast.id}
+                    className={`toast toast-${toast.tone}`}
+                    onClick={() => {
+                        dismissToast(toast.id);
+                        if (toast.link) {
+                            navigate(toast.link);
+                        }
+                    }}
+                >
+                    {toast.text}
+                </button>
             ))}
-
         </div>
     );
 }
