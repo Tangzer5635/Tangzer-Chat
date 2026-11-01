@@ -9,9 +9,8 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:-tangzer}
     volumes:
       - db-data:/var/lib/postgresql/data
-    # Exposé uniquement en local, pour lancer le backend hors Docker en dev.
-    ports:
-      - "127.0.0.1:${DB_PORT:-5432}:5432"
+    # Pas de port publié : seul le backend (dans Docker) parle à la base.
+    # Pour lancer le backend hors Docker, voir docker-compose.dev.yml.
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
