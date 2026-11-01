@@ -14,8 +14,9 @@ class StompSubscriptionGuardTest {
     private final StompSubscriptionGuard guard = new StompSubscriptionGuard(accessService);
 
     @Test
-    void personalQueuesAreAllowed() {
+    void personalQueuesAndPresenceAreAllowed() {
         assertThat(guard.isAllowed("/user/queue/events", 1L)).isTrue();
+        assertThat(guard.isAllowed("/topic/presence", 1L)).isTrue();
     }
 
     @Test

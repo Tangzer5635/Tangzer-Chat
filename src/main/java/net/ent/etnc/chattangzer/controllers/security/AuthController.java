@@ -1,7 +1,7 @@
 package net.ent.etnc.chattangzer.controllers.security;
 
 import net.ent.etnc.chattangzer.exceptions.ApiException;
-import net.ent.etnc.chattangzer.models.dtos.UserDto;
+import net.ent.etnc.chattangzer.models.dtos.MeDto;
 import net.ent.etnc.chattangzer.models.entities.User;
 import net.ent.etnc.chattangzer.security.jwt.JwtUtils;
 import net.ent.etnc.chattangzer.services.UserService;
@@ -55,12 +55,12 @@ public class AuthController {
     }
 
     private AuthResponse authResponse(User user) {
-        return new AuthResponse(jwtUtils.generateToken(user.getUsername()), UserDto.from(user));
+        return new AuthResponse(jwtUtils.generateToken(user.getUsername()), MeDto.from(user));
     }
 
     public record RegisterRequest(String username, String displayName, String password) {}
 
     public record LoginRequest(String username, String password) {}
 
-    public record AuthResponse(String token, UserDto user) {}
+    public record AuthResponse(String token, MeDto user) {}
 }

@@ -7,7 +7,9 @@ import ChannelView from "../components/chat/ChannelView";
 import DmSidebar from "../components/DmSidebar";
 import { useAuth } from "../context/auth";
 import { useDms } from "../context/dms";
+import { usePresence } from "../context/presence";
 import { useToasts } from "../context/toasts";
+import { STATUS_LABELS } from "../lib/presence";
 import type { User } from "../types/api";
 
 /** Accueil des MP : quelques personnes à qui écrire. */
@@ -15,6 +17,7 @@ function DmHome() {
     const { user } = useAuth();
     const { openWith } = useDms();
     const { pushToast } = useToasts();
+    const { statusOf } = usePresence();
     const navigate = useNavigate();
     const [people, setPeople] = useState<User[]>([]);
 
@@ -39,7 +42,7 @@ function DmHome() {
                 <div className="people-grid">
                     {people.map((person) => (
                         <button key={person.id} className="person-card" onClick={() => start(person)}>
-                            <Avatar user={person} size={56} />
+                            <Avatar user={person} size={56} status={statusOf(person.id)} />
                             <strong>{person.displayName}</strong>
                             <small>@{person.username}</small>
                             <span className="person-card-action">Envoyer un message</span>
@@ -56,6 +59,7 @@ export default function DirectMessagesPage() {
     const params = useParams();
     const channelId = params.channelId ? Number(params.channelId) : null;
     const { getConversation, loaded } = useDms();
+    const { statusOf, customStatusOf } = usePresence();
     const conversation = channelId ? getConversation(channelId) : undefined;
 
     return (
@@ -80,9 +84,11 @@ export default function DirectMessagesPage() {
                     placeholder={`Envoyer un message à @${conversation.otherUser.username}`}
                     header={
                         <>
-                            <Avatar user={conversation.otherUser} size={24} />
+                            <Avatar user={conversation.otherUser} size={24} status={statusOf(conversation.otherUser.id)} />
                             <h1>{conversation.otherUser.displayName}</h1>
-                            <span className="chat-header-topic">@{conversation.otherUser.username}</span>
+                            <span className="chat-header-topic">
+                                {customStatusOf(conversation.otherUser.id) ?? STATUS_LABELS[statusOf(conversation.otherUser.id)]}
+                            </span>
                         </>
                     }
                     welcome={

@@ -2,6 +2,7 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 
 import { useAuth } from "../context/auth";
 import { DmProvider } from "../context/DmContext";
+import { PresenceProvider } from "../context/PresenceContext";
 import { ServersProvider } from "../context/ServersContext";
 import { UnreadProvider } from "../context/UnreadContext";
 
@@ -24,11 +25,13 @@ export default function ProtectedRoute() {
 
     return (
         <ServersProvider key={user.id}>
-            <UnreadProvider>
-                <DmProvider>
-                    <Outlet />
-                </DmProvider>
-            </UnreadProvider>
+            <PresenceProvider>
+                <UnreadProvider>
+                    <DmProvider>
+                        <Outlet />
+                    </DmProvider>
+                </UnreadProvider>
+            </PresenceProvider>
         </ServersProvider>
     );
 }

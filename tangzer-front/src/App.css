@@ -1770,6 +1770,194 @@ button:disabled {
     margin-left: 4px;
 }
 
+/* ------------------------- Présence ------------------------- */
+
+.avatar-wrapper {
+    position: relative;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.status-dot {
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    box-sizing: content-box;
+    border: 3px solid var(--bg-sidebar);
+    border-radius: 50%;
+    background: #80848e;
+}
+
+.status-dot.inline {
+    position: static;
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border: 0;
+    flex-shrink: 0;
+}
+
+.status-online {
+    background: var(--success);
+}
+
+.status-idle {
+    background: var(--warning);
+    /* Croissant de lune, comme Discord. */
+    -webkit-mask: radial-gradient(circle at 25% 25%, transparent 35%, #000 36%);
+    mask: radial-gradient(circle at 25% 25%, transparent 35%, #000 36%);
+}
+
+.status-dnd {
+    background:
+        linear-gradient(#fff, #fff) center / 55% 22% no-repeat,
+        var(--danger);
+}
+
+.status-invisible, .status-offline {
+    background:
+        radial-gradient(circle, var(--bg-sidebar) 32%, #80848e 33%);
+}
+
+.chat-header .status-dot, .person-card .status-dot, .member-card .status-dot {
+    border-color: var(--bg-main);
+}
+
+.member-card .status-dot {
+    border-color: var(--bg-floating);
+}
+
+.person-card .status-dot {
+    border-color: var(--bg-sidebar);
+}
+
+.user-panel {
+    position: relative;
+}
+
+.user-panel-me {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    margin-left: -4px;
+    padding: 4px;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    text-align: left;
+}
+
+.user-panel-me:hover {
+    background: var(--bg-hover);
+}
+
+.user-panel-me .status-dot {
+    border-color: #232428;
+}
+
+.user-panel-names span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.status-menu {
+    position: absolute;
+    left: 8px;
+    bottom: 56px;
+    z-index: 30;
+    width: 260px;
+    padding: 8px;
+    border-radius: 8px;
+    background: var(--bg-floating);
+    box-shadow: var(--shadow);
+}
+
+.status-custom {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.status-custom input {
+    flex: 1;
+    padding: 8px;
+    border: 0;
+    border-radius: 4px;
+    background: var(--bg-rail);
+    color: var(--text-strong);
+    outline: none;
+}
+
+.status-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+    padding: 8px;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text);
+    text-align: left;
+}
+
+.status-option .status-dot {
+    margin-top: 5px;
+}
+
+.status-option:hover {
+    background: var(--accent);
+    color: #fff;
+}
+
+.status-option.active strong::after {
+    content: " ✓";
+}
+
+.status-option span:last-child {
+    display: flex;
+    flex-direction: column;
+}
+
+.status-option small {
+    color: inherit;
+    opacity: 0.75;
+    font-size: 12px;
+}
+
+.member-list .offline .member-item {
+    opacity: 0.35;
+}
+
+.member-list .offline .member-item:hover {
+    opacity: 1;
+}
+
+.member-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.2;
+}
+
+.member-custom-status {
+    overflow: hidden;
+    color: var(--text-muted);
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.member-card-custom {
+    margin: 0 0 8px;
+    color: var(--text);
+    font-size: 14px;
+}
+
 /* ------------------------- Membres ------------------------- */
 
 .member-list {

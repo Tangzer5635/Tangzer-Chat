@@ -2,6 +2,7 @@ package net.ent.etnc.chattangzer.services;
 
 import net.ent.etnc.chattangzer.exceptions.ApiException;
 import net.ent.etnc.chattangzer.models.entities.User;
+import net.ent.etnc.chattangzer.models.entities.UserStatus;
 import net.ent.etnc.chattangzer.repositories.UserRepository;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,11 +25,18 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final ServerService serverService;
+    private final PresenceService presenceService;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, ServerService serverService) {
+    public UserService(
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            ServerService serverService,
+            PresenceService presenceService
+    ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.serverService = serverService;
+        this.presenceService = presenceService;
     }
 
     /** "  Tanguy " devient "tanguy" : les usernames sont insensibles à la casse. */
@@ -61,6 +69,19 @@ public class UserService {
         User user = userRepository.save(new User(username, displayName, passwordEncoder.encode(password)));
         // Tout nouvel inscrit arrive sur le serveur public de Tangzer.
         serverService.joinDefaultServer(user);
+        return user;
+    }
+
+    /** Change mon statut (en ligne, inactif, ne pas déranger, invisible) et mon statut personnalisé. */
+    @Transactional
+    public User updateStatus(Long userId, UserStatus status, String rawCustomStatus) {
+        if (status == null || status == UserStatus.OFFLINE) {
+            throw ApiException.badRequest("Statut invalide");
+        }
+        User user = getById(userId);
+        user.setStatus(status);
+        user.setCustomStatus(Texts.optional(rawCustomStatus, 80, "Le statut personnalisé"));
+        presenceService.preferenceChanged(userId, user.getStatus(), user.getCustomStatus());
         return user;
     }
 

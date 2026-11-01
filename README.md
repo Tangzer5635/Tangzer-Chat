@@ -25,6 +25,9 @@ La feuille de route complète est dans [`docs/ROADMAP.md`](docs/ROADMAP.md).
 - **Photos** : bouton +, glisser-déposer ou coller une capture d'écran ; aperçu et progression
   avant l'envoi ; jusqu'à 4 images (PNG, JPEG, GIF, WEBP, 10 Mo) par message ; grille et
   visionneuse plein écran. Le serveur vérifie le vrai type du fichier, pas son nom.
+- **Présence** : en ligne, inactif (automatique après 5 min), ne pas déranger (plus de
+  notifications), invisible ; statut personnalisé (« 🎮 En partie ») ; plusieurs onglets gérés ;
+  membres hors ligne regroupés et grisés.
 - **Non-lus** : salons en gras, badges de mentions, titre de l'onglet « (3) Tangzer ».
 - **Messages privés** enregistrés, avec les mêmes possibilités que les salons, accusé « Vu »,
   recherche d'utilisateurs, notifications avec aperçu (voir [`docs/MESSAGES_PRIVES.md`](docs/MESSAGES_PRIVES.md)).
@@ -141,6 +144,7 @@ Navigateur ──HTTPS──▶ nginx (frontend) ──▶ /api  ──▶ Sprin
 | `/topic/servers/{id}` | événements d'un serveur (salons, membres, paramètres, activité) |
 | `/topic/channels/{id}` | événements d'un salon (messages, réactions, saisie) |
 | `/user/queue/events` | événements personnels (serveur rejoint, expulsion, nouveau MP) |
+| `/topic/presence` | changements de présence (en ligne, inactif, statut personnalisé…) |
 | `/user/queue/errors` | erreurs d'une action STOMP |
 
 Tous les événements ont la forme `{"type": "CHANNEL_CREATED", "payload": {...}}`.
