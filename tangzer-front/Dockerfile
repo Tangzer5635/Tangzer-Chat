@@ -14,7 +14,9 @@ FROM nginx:1.27
 
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 COPY docker/40-generate-cert.sh /docker-entrypoint.d/40-generate-cert.sh
-RUN chmod +x /docker-entrypoint.d/40-generate-cert.sh
+# sed : retire les fins de ligne Windows (CRLF) si le dépôt a été cloné sous Windows.
+RUN sed -i 's/\r$//' /docker-entrypoint.d/40-generate-cert.sh /etc/nginx/conf.d/default.conf \
+    && chmod +x /docker-entrypoint.d/40-generate-cert.sh
 
 COPY --from=build /app/dist /usr/share/nginx/html
 
