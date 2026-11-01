@@ -2,10 +2,14 @@ import type { SignalType } from "../types/api";
 
 /**
  * Connexions WebRTC d'un appel en « maillage » : une connexion directe avec
- * chaque autre participant. Le son ne passe jamais par le serveur.
+ * chaque autre participant. Le son et l'image ne passent jamais par le serveur.
  *
  * Qui appelle qui ? Le nouveau venu envoie une offre à chaque participant déjà
  * présent ; ceux-ci répondent. On évite ainsi que deux offres se croisent.
+ *
+ * Vidéo : chaque connexion prévoit dès le départ un canal vidéo (vide au début).
+ * Allumer la caméra ou partager son écran revient à y brancher une piste
+ * (replaceTrack), sans renégocier la connexion.
  */
 
 export interface MeshCallbacks {
@@ -17,6 +21,10 @@ export interface MeshCallbacks {
 
 interface Peer {
     connection: RTCPeerConnection;
+    /** C'est moi qui ai envoyé l'offre (c'est donc à moi de relancer en cas de coupure). */
+    initiator: boolean;
+    /** Son et image reçus de ce participant, réunis dans un seul flux. */
+    remoteStream: MediaStream;
     /** Candidats réseau reçus avant la description distante : on les garde de côté. */
     pendingCandidates: RTCIceCandidateInit[];
 }
@@ -26,6 +34,8 @@ export class Mesh {
     private readonly localStream: MediaStream;
     private readonly iceServers: RTCIceServer[];
     private readonly callbacks: MeshCallbacks;
+    /** Piste vidéo envoyée à tout le monde (caméra ou écran), ou null. */
+    private videoTrack: MediaStreamTrack | null = null;
 
     constructor(localStream: MediaStream, iceServers: RTCIceServer[], callbacks: MeshCallbacks) {
         this.localStream = localStream;
@@ -35,16 +45,22 @@ export class Mesh {
 
     /** Je viens d'arriver : j'envoie une offre à ce participant. */
     async connectTo(userId: number) {
-        const { connection } = this.peerFor(userId);
-        const offer = await connection.createOffer();
-        await connection.setLocalDescription(offer);
-        this.callbacks.sendSignal(userId, "offer", connection.localDescription?.toJSON());
+        const peer = this.createPeer(userId, true);
+        const { connection } = peer;
+        this.localStream.getAudioTracks().forEach((track) => connection.addTrack(track, this.localStream));
+        const video = connection.addTransceiver("video", { direction: "sendrecv", streams: [this.localStream] });
+        await video.sender.replaceTrack(this.videoTrack);
+        await this.sendOffer(userId, peer);
     }
 
     async handleSignal(fromUserId: number, type: SignalType, data: unknown) {
         if (type === "offer") {
-            const peer = this.peerFor(fromUserId);
+            const known = this.peers.get(fromUserId);
+            const peer = known ?? this.createPeer(fromUserId, false);
             await peer.connection.setRemoteDescription(data as RTCSessionDescriptionInit);
+            if (!known) {
+                await this.attachLocalMedia(peer);
+            }
             await this.flushCandidates(peer);
             const answer = await peer.connection.createAnswer();
             await peer.connection.setLocalDescription(answer);
@@ -69,6 +85,15 @@ export class Mesh {
         }
     }
 
+    /** Branche (ou débranche avec null) la caméra ou l'écran pour tous les participants. */
+    async setVideoTrack(track: MediaStreamTrack | null) {
+        this.videoTrack = track;
+        await Promise.all([...this.peers.values()].map((peer) => {
+            const sender = this.videoSender(peer.connection);
+            return sender ? sender.replaceTrack(track) : Promise.resolve();
+        }));
+    }
+
     /** Ferme la connexion avec un participant parti. */
     remove(userId: number) {
         const peer = this.peers.get(userId);
@@ -87,14 +112,11 @@ export class Mesh {
         [...this.peers.keys()].forEach((userId) => this.remove(userId));
     }
 
-    private peerFor(userId: number): Peer {
-        const existing = this.peers.get(userId);
-        if (existing) {
-            return existing;
-        }
+    // ------------------------------------------------------------------ Outils
 
+    private createPeer(userId: number, initiator: boolean): Peer {
         const connection = new RTCPeerConnection({ iceServers: this.iceServers });
-        this.localStream.getTracks().forEach((track) => connection.addTrack(track, this.localStream));
+        const peer: Peer = { connection, initiator, remoteStream: new MediaStream(), pendingCandidates: [] };
 
         connection.onicecandidate = (event) => {
             if (event.candidate) {
@@ -102,18 +124,41 @@ export class Mesh {
             }
         };
         connection.ontrack = (event) => {
-            this.callbacks.onRemoteStream(userId, event.streams[0] ?? new MediaStream([event.track]));
+            if (!peer.remoteStream.getTracks().includes(event.track)) {
+                peer.remoteStream.addTrack(event.track);
+            }
+            this.callbacks.onRemoteStream(userId, peer.remoteStream);
         };
         connection.onconnectionstatechange = () => {
-            // Coupure réseau passagère : on relance la recherche de chemin.
-            if (connection.connectionState === "failed") {
-                connection.restartIce();
+            // Coupure réseau : celui qui a fait l'offre relance la recherche de chemin.
+            if (connection.connectionState === "failed" && peer.initiator) {
+                void this.sendOffer(userId, peer, true);
             }
         };
 
-        const peer: Peer = { connection, pendingCandidates: [] };
         this.peers.set(userId, peer);
         return peer;
+    }
+
+    /** Côté réponse : on branche mon micro et ma vidéo sur les canaux proposés par l'offre. */
+    private async attachLocalMedia(peer: Peer) {
+        const audio = this.localStream.getAudioTracks()[0] ?? null;
+        for (const transceiver of peer.connection.getTransceivers()) {
+            const kind = transceiver.receiver.track.kind;
+            transceiver.direction = "sendrecv";
+            transceiver.sender.setStreams?.(this.localStream);
+            await transceiver.sender.replaceTrack(kind === "audio" ? audio : this.videoTrack);
+        }
+    }
+
+    private async sendOffer(userId: number, peer: Peer, iceRestart = false) {
+        const offer = await peer.connection.createOffer({ iceRestart });
+        await peer.connection.setLocalDescription(offer);
+        this.callbacks.sendSignal(userId, "offer", peer.connection.localDescription?.toJSON());
+    }
+
+    private videoSender(connection: RTCPeerConnection): RTCRtpSender | undefined {
+        return connection.getTransceivers().find((t) => t.receiver.track.kind === "video")?.sender;
     }
 
     private async flushCandidates(peer: Peer) {

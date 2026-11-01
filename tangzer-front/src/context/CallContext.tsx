@@ -4,6 +4,7 @@ import { fetchCalls, fetchIceServers } from "../api/calls";
 import { playJoinSound, playLeaveSound, SpeakingDetector, startRingtone } from "../calls/audio";
 import { applyCallState, departedPeers } from "../calls/callsState";
 import { Mesh } from "../calls/mesh";
+import { pickVideoTrack } from "../calls/video";
 import { randomId } from "../lib/id";
 import { useRealtimeConnected, useSubscription } from "../realtime/hooks";
 import { publish } from "../realtime/stomp";
@@ -56,6 +57,9 @@ export function CallProvider({ children }: { children: ReactNode }) {
     const [speaking, setSpeaking] = useState<Set<number>>(new Set());
     const [incoming, setIncoming] = useState<IncomingCall | null>(null);
     const [remoteStreams, setRemoteStreams] = useState<Record<number, MediaStream>>({});
+    const [video, setVideo] = useState(false);
+    const [screen, setScreen] = useState(false);
+    const [localVideo, setLocalVideo] = useState<MediaStream | null>(null);
 
     const meshRef = useRef<Mesh | null>(null);
     const localStreamRef = useRef<MediaStream | null>(null);
@@ -64,8 +68,11 @@ export function CallProvider({ children }: { children: ReactNode }) {
     const currentRef = useRef<CurrentCall | null>(null);
     /** Le serveur a confirmé notre arrivée dans l'appel. */
     const confirmedRef = useRef(false);
+    const cameraTrackRef = useRef<MediaStreamTrack | null>(null);
+    const screenTrackRef = useRef<MediaStreamTrack | null>(null);
 
     const supported = typeof window !== "undefined" && window.isSecureContext && !!navigator.mediaDevices?.getUserMedia;
+    const screenShareSupported = supported && typeof navigator.mediaDevices?.getDisplayMedia === "function";
 
     // ------------------------------------------------------------- Fin d'appel
 
@@ -77,6 +84,13 @@ export function CallProvider({ children }: { children: ReactNode }) {
         detectorRef.current = null;
         localStreamRef.current?.getTracks().forEach((track) => track.stop());
         localStreamRef.current = null;
+        cameraTrackRef.current?.stop();
+        cameraTrackRef.current = null;
+        screenTrackRef.current?.stop();
+        screenTrackRef.current = null;
+        setVideo(false);
+        setScreen(false);
+        setLocalVideo(null);
         currentRef.current = null;
         confirmedRef.current = false;
         setCurrent(null);
@@ -293,8 +307,79 @@ export function CallProvider({ children }: { children: ReactNode }) {
         localStreamRef.current?.getAudioTracks().forEach((track) => {
             track.enabled = !nextMuted;
         });
-        publish("/app/calls/state", { muted: nextMuted, deafened: nextDeafened, video: false, screen: false });
+        publish("/app/calls/state", {
+            muted: nextMuted,
+            deafened: nextDeafened,
+            video: cameraTrackRef.current !== null,
+            screen: screenTrackRef.current !== null,
+        });
     };
+
+    // ------------------------------------------------------------- Caméra et écran
+
+    /** Envoie la bonne image (écran sinon caméra) à tout le monde et prévient les autres. */
+    const applyVideo = async () => {
+        const track = pickVideoTrack(cameraTrackRef.current, screenTrackRef.current);
+        await meshRef.current?.setVideoTrack(track);
+        setLocalVideo(track ? new MediaStream([track]) : null);
+        setVideo(cameraTrackRef.current !== null);
+        setScreen(screenTrackRef.current !== null);
+        publishState(muted, deafened);
+    };
+
+    const toggleCamera = async () => {
+        if (!currentRef.current) {
+            return;
+        }
+        if (cameraTrackRef.current) {
+            cameraTrackRef.current.stop();
+            cameraTrackRef.current = null;
+        } else {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } },
+                });
+                cameraTrackRef.current = stream.getVideoTracks()[0];
+            } catch {
+                pushToast("Impossible d'allumer la caméra (accès refusé ou aucune caméra).", { tone: "error" });
+                return;
+            }
+        }
+        await applyVideo();
+    };
+
+    const stopScreen = async () => {
+        screenTrackRef.current?.stop();
+        screenTrackRef.current = null;
+        await applyVideo();
+    };
+
+    const toggleScreen = async () => {
+        if (!currentRef.current) {
+            return;
+        }
+        if (screenTrackRef.current) {
+            await stopScreen();
+            return;
+        }
+        try {
+            const stream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 15 } }, audio: false });
+            const track = stream.getVideoTracks()[0];
+            // « Arrêter le partage » depuis la barre du navigateur.
+            track.onended = () => {
+                if (screenTrackRef.current === track) {
+                    void stopScreen();
+                }
+            };
+            screenTrackRef.current = track;
+        } catch {
+            return; // partage annulé par l'utilisateur
+        }
+        await applyVideo();
+    };
+
+    const streamOf = (userId: number): MediaStream | null =>
+        userId === user?.id ? localVideo : remoteStreams[userId] ?? null;
 
     const toggleMute = () => {
         const nextMuted = !muted;
@@ -336,8 +421,8 @@ export function CallProvider({ children }: { children: ReactNode }) {
     }, [cleanUp]);
 
     const value: CallContextValue = {
-        calls, current, connecting, muted, deafened, speaking, incoming, supported,
-        join, leave, toggleMute, toggleDeafen, acceptIncoming, declineIncoming,
+        calls, current, connecting, muted, deafened, video, screen, screenShareSupported, speaking, incoming, supported,
+        join, leave, toggleMute, toggleDeafen, toggleCamera, toggleScreen, streamOf, acceptIncoming, declineIncoming,
     };
 
     return (

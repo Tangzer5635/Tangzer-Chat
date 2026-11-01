@@ -180,6 +180,17 @@ class CallServiceTest {
     }
 
     @Test
+    void cameraAndScreenSharingAreShared() {
+        callService.join(voiceChannelId, alice.getId(), "a", "s");
+
+        callService.updateState(alice.getId(), new CallDtos.StateRequest(false, false, true, true));
+
+        CallDtos.Participant participant = callService.visibleCalls(bob.getId()).getFirst().participants().getFirst();
+        assertThat(participant.video()).isTrue();
+        assertThat(participant.screen()).isTrue();
+    }
+
+    @Test
     void noMessagesInAVoiceChannel() {
         assertThatThrownBy(() -> messageService.send(voiceChannelId, alice.getId(),
                 new MessageRequests.Send("allô ?", null, null)))
