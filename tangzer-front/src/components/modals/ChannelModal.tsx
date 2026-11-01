@@ -20,6 +20,7 @@ export default function ChannelModal({ serverId, channel, onClose }: ChannelModa
 
     const [name, setName] = useState(channel?.name ?? "");
     const [topic, setTopic] = useState(channel?.topic ?? "");
+    const [type, setType] = useState<"TEXT" | "VOICE">("TEXT");
     const [error, setError] = useState("");
     const [saving, setSaving] = useState(false);
 
@@ -33,7 +34,7 @@ export default function ChannelModal({ serverId, channel, onClose }: ChannelModa
         try {
             const saved = channel
                 ? await updateChannel(channel.id, { name, topic })
-                : await createChannel(serverId, { name, topic });
+                : await createChannel(serverId, { name, topic, type });
             dispatch({ type: "channelUpserted", channel: saved });
             onClose();
             navigate(`/app/servers/${serverId}/channels/${saved.id}`);
@@ -66,6 +67,23 @@ export default function ChannelModal({ serverId, channel, onClose }: ChannelModa
             onClose={onClose}
         >
             <form className="form" onSubmit={handleSubmit}>
+                {!channel && (
+                    <>
+                        <label>Type de salon</label>
+                        <div className="channel-types">
+                            <button type="button" className={type === "TEXT" ? "channel-type active" : "channel-type"} onClick={() => setType("TEXT")}>
+                                <span>#</span>
+                                <strong>Textuel</strong>
+                                <small>Messages, images, réactions…</small>
+                            </button>
+                            <button type="button" className={type === "VOICE" ? "channel-type active" : "channel-type"} onClick={() => setType("VOICE")}>
+                                <span>🔊</span>
+                                <strong>Vocal</strong>
+                                <small>Discuter de vive voix</small>
+                            </button>
+                        </div>
+                    </>
+                )}
                 <label htmlFor="channel-name">Nom du salon</label>
                 <div className="input-prefixed">
                     <span>#</span>

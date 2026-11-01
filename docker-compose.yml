@@ -32,6 +32,10 @@ services:
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-*}
       APP_DEMO_DATA: ${APP_DEMO_DATA:-true}
       STORAGE_DIR: /app/data/uploads
+      WEBRTC_STUN_URLS: ${WEBRTC_STUN_URLS:-stun:stun.l.google.com:19302}
+      WEBRTC_TURN_URL: ${WEBRTC_TURN_URL:-}
+      WEBRTC_TURN_USERNAME: ${TURN_USERNAME:-tangzer}
+      WEBRTC_TURN_CREDENTIAL: ${TURN_PASSWORD:-}
     volumes:
       - uploads:/app/data
     restart: unless-stopped
@@ -48,6 +52,24 @@ services:
       TLS_EXTRA_SAN: ${TLS_EXTRA_SAN:-}
     volumes:
       - ./certs:/etc/nginx/certs
+    restart: unless-stopped
+
+  # Relais TURN facultatif, pour les appels entre réseaux différents (4G, box…).
+  # Lancement : docker compose --profile turn up -d (voir README).
+  turn:
+    image: coturn/coturn:4.6
+    profiles: ["turn"]
+    network_mode: host
+    command:
+      - -n
+      - --log-file=stdout
+      - --listening-port=3478
+      - --min-port=49160
+      - --max-port=49200
+      - --fingerprint
+      - --lt-cred-mech
+      - --realm=tangzer
+      - --user=${TURN_USERNAME:-tangzer}:${TURN_PASSWORD:-change-me}
     restart: unless-stopped
 
 volumes:

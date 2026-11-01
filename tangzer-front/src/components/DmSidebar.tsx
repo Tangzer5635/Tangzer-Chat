@@ -7,6 +7,7 @@ import { usePresence } from "../context/presence";
 import { useUnread } from "../context/unread";
 import { toPlainText } from "../lib/markdown";
 import Avatar from "./Avatar";
+import CallPanel from "./calls/CallPanel";
 import NewDmModal from "./modals/NewDmModal";
 import UserPanel from "./UserPanel";
 
@@ -53,6 +54,7 @@ export default function DmSidebar() {
                 })}
             </div>
 
+            <CallPanel />
             <UserPanel />
             {creating && <NewDmModal onClose={() => setCreating(false)} />}
         </aside>

@@ -2,11 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 
 import { leaveServer } from "../api/servers";
+import { useCalls } from "../context/calls";
 import { useServers } from "../context/servers";
 import { useToasts } from "../context/toasts";
 import { useUnread } from "../context/unread";
 import { canManageServer } from "../lib/permissions";
 import type { Channel, Server } from "../types/api";
+import Avatar from "./Avatar";
+import CallPanel from "./calls/CallPanel";
 import ChannelModal from "./modals/ChannelModal";
 import InviteModal from "./modals/InviteModal";
 import ServerSettingsModal from "./modals/ServerSettingsModal";
@@ -25,6 +28,7 @@ export default function ChannelSidebar({ server }: { server: Server }) {
     const { dispatch } = useServers();
     const { pushToast } = useToasts();
     const { counts, mentions } = useUnread();
+    const { calls, join, speaking } = useCalls();
 
     const [menuOpen, setMenuOpen] = useState(false);
     const [modal, setModal] = useState<OpenModal>(null);
@@ -32,6 +36,7 @@ export default function ChannelSidebar({ server }: { server: Server }) {
 
     const canManage = canManageServer(server.myRole);
     const textChannels = server.channels.filter((c) => c.type === "TEXT");
+    const voiceChannels = server.channels.filter((c) => c.type === "VOICE");
 
     // Ferme le menu quand on clique ailleurs.
     useEffect(() => {
@@ -140,8 +145,57 @@ export default function ChannelSidebar({ server }: { server: Server }) {
                         )}
                     </NavLink>
                 ))}
+
+                {voiceChannels.length > 0 && (
+                    <div className="channel-category">
+                        <span>Salons vocaux</span>
+                        {canManage && (
+                            <button className="icon-button small" title="Créer un salon" onClick={() => open({ kind: "createChannel" })}>
+                                +
+                            </button>
+                        )}
+                    </div>
+                )}
+
+                {voiceChannels.map((channel) => (
+                    <div key={channel.id}>
+                        <NavLink
+                            to={`/app/servers/${server.id}/channels/${channel.id}`}
+                            className={({ isActive }) => (isActive ? "channel-item active" : "channel-item")}
+                            onClick={() => void join(channel.id)}
+                            title="Rejoindre le salon vocal"
+                        >
+                            <span className="channel-hash">🔊</span>
+                            <span className="channel-name">{channel.name}</span>
+                            {canManage && (
+                                <button
+                                    className="channel-edit"
+                                    title="Modifier le salon"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        open({ kind: "editChannel", channel });
+                                    }}
+                                >
+                                    ⚙
+                                </button>
+                            )}
+                        </NavLink>
+                        {(calls[channel.id]?.participants ?? []).map((participant) => (
+                            <div
+                                key={participant.user.id}
+                                className={speaking.has(participant.user.id) && !participant.muted ? "voice-member speaking" : "voice-member"}
+                            >
+                                <Avatar user={participant.user} size={24} />
+                                <span className="voice-member-name">{participant.user.displayName}</span>
+                                {participant.deafened ? <small>🙉</small> : participant.muted ? <small>🔇</small> : null}
+                            </div>
+                        ))}
+                    </div>
+                ))}
             </div>
 
+            <CallPanel />
             <UserPanel />
 
             {modal?.kind === "invite" && <InviteModal server={server} onClose={() => setModal(null)} />}

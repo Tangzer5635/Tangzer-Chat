@@ -44,6 +44,7 @@ export const changeMemberRole = (serverId: number, userId: number, role: MemberR
 export interface ChannelForm {
     name?: string;
     topic?: string;
+    type?: "TEXT" | "VOICE";
 }
 
 export const createChannel = (serverId: number, form: ChannelForm) =>

@@ -3,6 +3,7 @@ import { Link, Navigate, useParams } from "react-router-dom";
 
 import ChannelSidebar from "../components/ChannelSidebar";
 import ChannelView from "../components/chat/ChannelView";
+import VoiceRoom from "../components/calls/VoiceRoom";
 import MemberList from "../components/MemberList";
 import { useServers } from "../context/servers";
 import { getLastChannel, rememberChannel } from "../lib/lastVisited";
@@ -44,7 +45,9 @@ export default function ServerPage() {
 
     // Pas de salon choisi (ou salon supprimé) : on ouvre le dernier visité ou le premier.
     if (!channel) {
-        const fallback = server.channels.find((c) => c.id === getLastChannel(server.id)) ?? server.channels[0];
+        const fallback = server.channels.find((c) => c.id === getLastChannel(server.id))
+            ?? server.channels.find((c) => c.type === "TEXT")
+            ?? server.channels[0];
         return fallback
             ? <Navigate to={`/app/servers/${server.id}/channels/${fallback.id}`} replace />
             : <div className="page-empty"><p>Ce serveur n'a aucun salon.</p></div>;
@@ -56,6 +59,15 @@ export default function ServerPage() {
             return !visible;
         });
     };
+
+    if (channel.type === "VOICE") {
+        return (
+            <>
+                <ChannelSidebar server={server} />
+                <VoiceRoom key={channel.id} channel={channel} />
+            </>
+        );
+    }
 
     return (
         <>

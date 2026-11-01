@@ -29,6 +29,8 @@ interface ChannelViewProps {
     welcome: ReactNode;
     placeholder: string;
     canModerate: boolean;
+    /** Affiché sous l'en-tête, au-dessus du fil (ex. : l'appel en cours). */
+    banner?: ReactNode;
     /** Conversation privée : l'autre participant, pour l'accusé « Vu ». */
     partner?: User;
     partnerReadId?: number | null;
@@ -279,6 +281,7 @@ export default function ChannelView(props: ChannelViewProps) {
                 </div>
             )}
             <header className="chat-header">{header}</header>
+            {props.banner}
 
             {!state.loaded ? (
                 <div className="page-loading">Chargement des messages…</div>
