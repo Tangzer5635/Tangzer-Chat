@@ -3,6 +3,7 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../context/auth";
 import { DirectMessagesProvider } from "../context/DirectMessagesContext";
 import { ServersProvider } from "../context/ServersContext";
+import { UnreadProvider } from "../context/UnreadContext";
 
 /**
  * Pages réservées aux utilisateurs connectés.
@@ -23,9 +24,11 @@ export default function ProtectedRoute() {
 
     return (
         <ServersProvider key={user.id}>
-            <DirectMessagesProvider>
-                <Outlet />
-            </DirectMessagesProvider>
+            <UnreadProvider>
+                <DirectMessagesProvider>
+                    <Outlet />
+                </DirectMessagesProvider>
+            </UnreadProvider>
         </ServersProvider>
     );
 }

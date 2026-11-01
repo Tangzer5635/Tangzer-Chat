@@ -26,3 +26,6 @@ export const INVITE_MAX_USES: { label: string; uses: number | null }[] = [
     { label: "25 utilisations", uses: 25 },
     { label: "100 utilisations", uses: 100 },
 ];
+
+/** Réactions proposées au survol d'un message. */
+export const QUICK_REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "🔥", "🎉", "👀"];

@@ -66,12 +66,45 @@ export interface InvitePreview {
     valid: boolean;
 }
 
-export interface ChannelMessage {
-    id: string;
+export interface Reaction {
+    emoji: string;
+    userIds: number[];
+}
+
+export interface MessagePreview {
+    id: number;
+    author: User;
+    content: string;
+}
+
+export interface Message {
+    id: number;
     channelId: number;
     author: User;
     content: string;
     createdAt: string;
+    editedAt: string | null;
+    replyTo: MessagePreview | null;
+    reactions: Reaction[];
+    /** Identifiant temporaire choisi à l'envoi, pour retrouver le message « en cours ». */
+    nonce?: string | null;
+    /** Côté front uniquement : envoi en cours / échoué. */
+    pending?: boolean;
+    failed?: boolean;
+}
+
+export interface UnreadEntry {
+    channelId: number;
+    serverId: number | null;
+    count: number;
+}
+
+export interface ChannelActivity {
+    serverId: number;
+    channelId: number;
+    messageId: number;
+    authorId: number;
+    mentions: string[];
 }
 
 /** Enveloppe de tous les événements STOMP : {"type": "...", "payload": {...}}. */

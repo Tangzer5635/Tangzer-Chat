@@ -18,6 +18,11 @@ La feuille de route complète est dans [`docs/ROADMAP.md`](docs/ROADMAP.md).
 - **Rôles** : propriétaire, admins, membres ; nommer/retirer un admin, expulser.
 - **Temps réel** : messages, arrivées/départs, nouveaux salons, changements de rôle…
   sans recharger la page ; reconnexion automatique.
+- **Messages** enregistrés avec historique (on remonte le fil à l'infini), mise en forme
+  (`**gras**`, `*italique*`, `__souligné__`, `~~barré~~`, `||spoiler||`, `` `code` ``, blocs de code,
+  liens), mentions `@pseudo`, réponses, réactions emoji, modification (flèche ↑) et suppression
+  (auteur ou modérateurs), indicateur « en train d'écrire », cartes pour les liens d'invitation.
+- **Non-lus** : salons en gras, badges de mentions, titre de l'onglet « (3) Tangzer ».
 - **Messages privés** avec accusés de lecture et indicateur de saisie.
 
 ## 🚀 Lancer avec Docker (recommandé)
@@ -121,8 +126,8 @@ Navigateur ──HTTPS──▶ nginx (frontend) ──▶ /api  ──▶ Sprin
 
 | Destination STOMP | Contenu |
 |---|---|
-| `/topic/servers/{id}` | événements d'un serveur (salons, membres, paramètres) |
-| `/topic/channels/{id}` | événements d'un salon (messages) |
+| `/topic/servers/{id}` | événements d'un serveur (salons, membres, paramètres, activité) |
+| `/topic/channels/{id}` | événements d'un salon (messages, réactions, saisie) |
 | `/user/queue/events` | événements personnels (serveur rejoint, expulsion) |
 | `/user/queue/errors` | erreurs d'une action STOMP |
 
