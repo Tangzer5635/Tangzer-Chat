@@ -2,7 +2,6 @@ import { Hash, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 
-import ChannelSidebar from "../components/ChannelSidebar";
 import ChannelView from "../components/chat/ChannelView";
 import VoiceRoom from "../components/calls/VoiceRoom";
 import MemberList from "../components/MemberList";
@@ -22,7 +21,9 @@ export default function ServerPage() {
     const server = getServer(serverId);
     const channel = server?.channels.find((c) => c.id === channelId);
 
-    const [showMembers, setShowMembers] = useState(() => localStorage.getItem(MEMBERS_KEY) !== "false");
+    // Sur écran étroit, les membres passent par-dessus la discussion : fermés au départ.
+    const [showMembers, setShowMembers] = useState(() =>
+        localStorage.getItem(MEMBERS_KEY) !== "false" && window.matchMedia("(min-width: 1101px)").matches);
 
     useEffect(() => {
         if (server && channel) {
@@ -63,21 +64,18 @@ export default function ServerPage() {
 
     if (channel.type === "VOICE") {
         return (
-            <>
-                <ChannelSidebar server={server} />
-                <VoiceRoom key={channel.id} channel={channel} />
-            </>
+            <VoiceRoom key={channel.id} channel={channel} />
         );
     }
 
     return (
         <>
-            <ChannelSidebar server={server} />
             <ChannelView
                 key={channel.id}
                 channelId={channel.id}
                 canModerate={canManageServer(server.myRole)}
                 placeholder={`Envoyer un message dans #${channel.name}`}
+                label={`Messages de #${channel.name}`}
                 header={
                     <>
                         <Hash className="chat-header-hash" size={22} />

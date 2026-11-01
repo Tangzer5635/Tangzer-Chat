@@ -42,7 +42,12 @@ et la liste de tout ce qu'il y a à essayer dans [`docs/GUIDE_DE_TEST.md`](docs/
   de bannière, carte de profil ; thème clair, sombre ou selon l'appareil, taille du texte,
   mode compact ; notifications du bureau et sons ; choix du micro et de la caméra avec test ;
   changement de mot de passe ; image d'icône pour les serveurs.
-- **Mobile** : la navigation s'ouvre en tiroir (☰).
+- **Navigation** : en-tête (logo, recherche rapide Ctrl+K, menu du compte) et colonne de gauche
+  avec les messages privés, Explorer et les serveurs nommés en clair ; le serveur ouvert se déplie
+  sur ses salons. Sur téléphone, la navigation s'ouvre en tiroir.
+- **Accessibilité** : lien « Aller au contenu », fil de messages parcouru aux flèches (les actions
+  d'un message s'affichent au focus), nouveaux messages annoncés aux lecteurs d'écran, fenêtres
+  modales natives, champs étiquetés, contrastes WCAG AA vérifiés par les tests.
 - **Non-lus** : salons en gras, badges de mentions, titre de l'onglet « (3) Préau ».
 - **Messages privés** enregistrés, avec les mêmes possibilités que les salons, accusé « Vu »,
   recherche d'utilisateurs, notifications avec aperçu (voir [`docs/MESSAGES_PRIVES.md`](docs/MESSAGES_PRIVES.md)).
@@ -169,6 +174,9 @@ y est écrite une fois sous la forme `light-dark(clair, sombre)`.
 Le test `tokens.test.ts` vérifie que chaque association texte/fond atteint le niveau
 WCAG AA dans les deux modes : une couleur trop pâle fait échouer la CI.
 
+- Feuilles de style : `tokens.css` (variables), `base.css` (typographie, focus),
+  `components.css` (boutons, champs, onglets, alertes, fenêtres, menus), `layout.css`
+  (en-tête, navigation, écrans étroits), `App.css` (discussion, appels, pages).
 - Composants communs dans `tangzer-front/src/components/ui/` et `styles/components.css` :
   fenêtres modales natives (`<dialog>` : focus enfermé, Échap, retour du focus), champs
   avec libellé, aide et erreur reliés (`Field`), onglets au clavier (`Tabs`), alertes
@@ -217,7 +225,9 @@ src/main/resources/db/migration/   schéma SQL versionné (Flyway)
 
 tangzer-front/src/
 ├── api/         appels REST (client http.ts commun)
-├── components/  context/  layout/  pages/  routes/
-├── lib/         fonctions pures testées (reducers, permissions, formats)
-└── realtime/    client STOMP partagé + hooks useSubscription
+├── components/  ui/ (composants communs), nav/ (navigation), chat/, calls/, modals/, settings/
+├── context/  layout/  pages/  routes/
+├── lib/         fonctions pures testées (reducers, permissions, contrastes, recherche…)
+├── realtime/    client STOMP partagé + hooks useSubscription
+└── styles/      tokens.css, base.css, components.css, layout.css
 ```

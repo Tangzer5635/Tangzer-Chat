@@ -7,7 +7,6 @@ import Avatar from "../components/Avatar";
 import ChannelView from "../components/chat/ChannelView";
 import CallControls from "../components/calls/CallControls";
 import CallTiles from "../components/calls/CallTiles";
-import DmSidebar from "../components/DmSidebar";
 import { useAuth } from "../context/auth";
 import { useCalls } from "../context/calls";
 import { useDms } from "../context/dms";
@@ -80,7 +79,6 @@ export default function DirectMessagesPage() {
 
     return (
         <>
-            <DmSidebar />
             {!channelId ? (
                 <DmHome />
             ) : !loaded ? (
@@ -108,6 +106,7 @@ export default function DirectMessagesPage() {
                     partner={conversation.otherUser}
                     partnerReadId={conversation.otherLastReadMessageId}
                     placeholder={`Envoyer un message à @${conversation.otherUser.username}`}
+                    label={`Conversation avec ${conversation.otherUser.displayName}`}
                     header={
                         <>
                             <Avatar user={conversation.otherUser} size={24} status={statusOf(conversation.otherUser.id)} />

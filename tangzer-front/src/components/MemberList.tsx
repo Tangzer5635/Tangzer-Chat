@@ -52,26 +52,31 @@ export default function MemberList({ server }: { server: Server }) {
     };
 
     return (
-        <aside className="member-list" aria-label="Membres">
+        <aside className="member-list" aria-labelledby="membres-titre">
+            <h2 id="membres-titre" className="member-list-title">Membres <span>{members.length}</span></h2>
             {groups.map((group) => (
                 <section key={group.offline ? "offline" : group.role} className={group.offline ? "offline" : undefined}>
                     <h3 className="member-group">{group.label} — {group.members.length}</h3>
-                    {group.members.map((member) => (
-                        <button
-                            key={member.user.id}
-                            className={selected === member.user.id ? "member-item active" : "member-item"}
-                            onClick={() => setSelected(selected === member.user.id ? null : member.user.id)}
-                        >
-                            <Avatar user={member.user} size={32} status={statusOf(member.user.id)} />
-                            <span className="member-text">
-                                <span className="member-name">{member.user.displayName}</span>
-                                {customStatusOf(member.user.id) && (
-                                    <span className="member-custom-status">{customStatusOf(member.user.id)}</span>
-                                )}
-                            </span>
-                            {member.role === "OWNER" && <Crown className="member-crown" size={16} role="img" aria-label="Propriétaire" />}
-                        </button>
-                    ))}
+                    <ul className="member-items">
+                        {group.members.map((member) => (
+                            <li key={member.user.id}>
+                                <button
+                                    className={selected === member.user.id ? "member-item active" : "member-item"}
+                                    onClick={() => setSelected(selected === member.user.id ? null : member.user.id)}
+                                    aria-expanded={selected === member.user.id}
+                                >
+                                    <Avatar user={member.user} size={32} status={statusOf(member.user.id)} />
+                                    <span className="member-text">
+                                        <span className="member-name">{member.user.displayName}</span>
+                                        {customStatusOf(member.user.id) && (
+                                            <span className="member-custom-status">{customStatusOf(member.user.id)}</span>
+                                        )}
+                                    </span>
+                                    {member.role === "OWNER" && <Crown className="member-crown" size={16} role="img" aria-label="Propriétaire" />}
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
                 </section>
             ))}
 

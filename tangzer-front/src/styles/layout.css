@@ -1,0 +1,547 @@
+/* ============================================================
+   Disposition de l'application connectée :
+   en-tête en haut, navigation à gauche, contenu au centre,
+   membres à droite. Toutes les valeurs viennent de tokens.css.
+   ============================================================ */
+
+:root {
+    --header-height: 3.5rem;
+    --nav-width: 17rem;
+    --members-width: 16rem;
+}
+
+/* ------------------------- Lien d'évitement ------------------------- */
+
+.skip-link {
+    position: absolute;
+    top: var(--space-2);
+    left: var(--space-4);
+    z-index: 100;
+    padding: var(--space-2) var(--space-4);
+    border: 2px solid var(--brand);
+    background: var(--bg-default);
+    color: var(--brand);
+    font-weight: var(--weight-semibold);
+    transform: translateY(-200%);
+}
+
+.skip-link:focus {
+    transform: none;
+}
+
+/* ------------------------- Squelette ------------------------- */
+
+.app-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.app-body {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+}
+
+.app-main {
+    position: relative;
+    flex: 1;
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+    background: var(--bg-default);
+}
+
+.app-main:focus-visible {
+    outline-offset: -2px;
+}
+
+.page-loading, .splash {
+    display: grid;
+    place-items: center;
+    color: var(--text-mention);
+}
+
+.splash {
+    min-height: 100vh;
+}
+
+.page-loading {
+    flex: 1;
+    padding: var(--space-8);
+}
+
+.page-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-8);
+    color: var(--text-mention);
+    text-align: center;
+}
+
+.page-empty h2 {
+    margin: 0;
+}
+
+/* ------------------------- En-tête ------------------------- */
+
+.app-header {
+    position: relative;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    flex: 0 0 var(--header-height);
+    padding: 0 var(--space-4);
+    border-bottom: 1px solid var(--border-default);
+    background: var(--bg-default);
+}
+
+.app-nav-toggle {
+    display: none;
+}
+
+.app-header-brand {
+    display: inline-flex;
+    flex-shrink: 0;
+    padding: var(--space-1);
+    text-decoration: none;
+}
+
+.app-header-brand:hover .logo-name {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.app-search-button {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex: 0 1 28rem;
+    min-width: 0;
+    min-height: var(--control-height);
+    margin-left: var(--space-6);
+    padding: 0 var(--space-3);
+    border: 0;
+    border-radius: var(--radius-control);
+    background: var(--bg-contrast);
+    box-shadow: inset 0 -2px 0 0 var(--border-control);
+    color: var(--text-mention);
+    text-align: left;
+}
+
+.app-search-button:hover {
+    color: var(--text-title);
+}
+
+.app-search-label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.app-search-button kbd {
+    flex-shrink: 0;
+    padding: 0 var(--space-2);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    background: var(--bg-default);
+    color: var(--text-mention);
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    line-height: 1.5rem;
+}
+
+/* Menu du compte */
+.account-menu {
+    position: relative;
+}
+
+.account-button {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    max-width: 17rem;
+    min-height: var(--target-min);
+    padding: var(--space-1) var(--space-2);
+    border: 0;
+    border-radius: var(--radius-control);
+    background: transparent;
+    color: var(--text-default);
+    text-align: left;
+}
+
+.account-button:hover, .account-button[aria-expanded="true"] {
+    background: var(--bg-hover);
+}
+
+.account-names {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: var(--leading-tight);
+}
+
+.account-names strong {
+    overflow: hidden;
+    color: var(--text-title);
+    font-size: var(--text-sm);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.account-names span {
+    overflow: hidden;
+    color: var(--text-mention);
+    font-size: var(--text-xs);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.account-chevron {
+    flex-shrink: 0;
+    color: var(--text-mention);
+    transition: transform var(--duration-fast);
+}
+
+.account-chevron.open {
+    transform: rotate(180deg);
+}
+
+.account-dropdown {
+    top: calc(100% + var(--space-1));
+    right: 0;
+    width: 19rem;
+    padding-top: var(--space-3);
+}
+
+/* Recherche rapide (fenêtre ouverte par le bouton de l'en-tête ou Ctrl+K) */
+.search-group {
+    margin-top: var(--space-6);
+}
+
+.search-group h3 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0 0 var(--space-2);
+    color: var(--text-mention);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.search-group ul {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.search-result {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    width: 100%;
+    min-height: var(--target-min);
+    padding: var(--space-2) var(--space-3);
+    border: 0;
+    border-radius: var(--radius-control);
+    background: transparent;
+    color: var(--text-default);
+    text-align: left;
+}
+
+.search-result:hover {
+    background: var(--bg-hover);
+}
+
+.search-result > span {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.search-result strong {
+    overflow: hidden;
+    color: var(--text-title);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.search-result small {
+    color: var(--text-mention);
+    font-size: var(--text-sm);
+}
+
+/* ------------------------- Navigation ------------------------- */
+
+.app-nav {
+    flex: 0 0 var(--nav-width);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    border-right: 1px solid var(--border-default);
+    background: var(--bg-alt);
+}
+
+.app-nav-scroll {
+    flex: 1;
+    min-height: 0;
+    padding: var(--space-3) var(--space-2) var(--space-6);
+    overflow-y: auto;
+}
+
+.nav-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: var(--target-min);
+    padding: var(--space-2) var(--space-3);
+    border-left: 3px solid transparent;
+    color: var(--text-default);
+    text-decoration: none;
+}
+
+.nav-link:hover {
+    background: var(--bg-hover);
+    color: var(--text-title);
+}
+
+.nav-link.active {
+    border-left-color: var(--brand);
+    color: var(--text-title);
+    font-weight: var(--weight-bold);
+}
+
+/* Explorer (sans sous-rubrique) : la page courante est surlignée. */
+.nav-list > li:not(.nav-server) > .nav-link.active {
+    background: var(--brand-subtle);
+}
+
+.nav-icon {
+    flex-shrink: 0;
+    color: var(--text-mention);
+}
+
+.nav-link.active .nav-icon {
+    color: var(--brand);
+}
+
+.nav-label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.nav-link.unread .nav-label {
+    color: var(--text-title);
+    font-weight: var(--weight-bold);
+}
+
+.unread-dot {
+    flex-shrink: 0;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-title);
+}
+
+.nav-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: var(--space-6) 0 var(--space-1);
+    padding: 0 var(--space-1) 0 var(--space-3);
+}
+
+.nav-section-header h2 {
+    margin: 0;
+    color: var(--text-mention);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.nav-server-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.nav-server-row .nav-link {
+    flex: 1;
+    min-width: 0;
+}
+
+.nav-server-menu {
+    margin-right: var(--space-1);
+}
+
+.nav-server-dropdown {
+    top: 100%;
+    right: 0;
+    left: var(--space-2);
+}
+
+/* Sous-rubrique dépliée : salons du serveur ou conversations privées. */
+.nav-channels {
+    padding: var(--space-1) 0 var(--space-3) var(--space-4);
+}
+
+.nav-new-dm {
+    min-height: 2rem;
+    margin: 0 0 var(--space-2) var(--space-2);
+    padding: 0 var(--space-1);
+    font-size: var(--text-sm);
+}
+
+.nav-empty {
+    margin: var(--space-2) var(--space-3);
+    color: var(--text-mention);
+    font-size: var(--text-sm);
+}
+
+.app-nav .call-panel {
+    border-top: 1px solid var(--border-default);
+    border-bottom: 0;
+}
+
+/* ------------------------- Membres ------------------------- */
+
+.member-list {
+    flex: 0 0 var(--members-width);
+    position: relative;
+    padding: var(--space-4) var(--space-2);
+    border-left: 1px solid var(--border-default);
+    background: var(--bg-alt);
+    overflow-y: auto;
+}
+
+.member-list-title {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: 0 var(--space-2) var(--space-2);
+    font-size: var(--text-md);
+}
+
+.member-list-title span {
+    color: var(--text-mention);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-regular);
+}
+
+.member-items {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+/* ------------------------- Écrans étroits ------------------------- */
+
+@media (max-width: 1100px) {
+    /* Les membres passent par-dessus la discussion. */
+    .member-list {
+        position: fixed;
+        top: var(--header-height);
+        right: 0;
+        bottom: 0;
+        z-index: 20;
+        width: min(18rem, 85vw);
+        box-shadow: var(--shadow-raised);
+    }
+}
+
+@media (max-width: 900px) {
+    .app-nav-toggle {
+        display: inline-grid;
+    }
+
+    /* Navigation en tiroir, ouverte par le bouton de l'en-tête. */
+    .app-nav {
+        position: fixed;
+        top: var(--header-height);
+        bottom: 0;
+        left: 0;
+        z-index: 46;
+        width: min(19rem, 85vw);
+        box-shadow: var(--shadow-raised);
+        transform: translateX(-100%);
+        visibility: hidden;
+        transition: transform 0.2s ease-out, visibility 0.2s;
+    }
+
+    .nav-open .app-nav {
+        transform: none;
+        visibility: visible;
+    }
+
+    .mobile-nav-backdrop {
+        position: fixed;
+        inset: var(--header-height) 0 0 0;
+        z-index: 45;
+        background: var(--bg-overlay);
+    }
+
+    .app-search-button {
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 640px) {
+    .app-header {
+        gap: var(--space-2);
+        padding: 0 var(--space-2);
+    }
+
+    .account-chevron, .app-search-button kbd {
+        display: none;
+    }
+
+    /* La recherche devient un bouton-icône. */
+    .app-search-button {
+        flex: 0 0 var(--control-height);
+        justify-content: center;
+        padding: 0;
+    }
+
+    /* Textes masqués à l'écran mais toujours lus : ils donnent leur nom aux liens et boutons. */
+    .app-search-label, .app-header-brand .logo-name, .account-names {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+
+    .chat-header {
+        padding: var(--space-2) var(--space-4);
+    }
+
+    .chat-header-topic {
+        display: none;
+    }
+}

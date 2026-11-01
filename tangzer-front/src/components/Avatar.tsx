@@ -1,8 +1,8 @@
 import { useLiveUser } from "../context/users";
 import { colorFor, initials } from "../lib/avatar";
 import { STATUS_LABELS } from "../lib/presence";
-import type { UserStatus } from "../types/api";
 import { readableTextOn } from "../lib/contrast";
+import type { UserStatus } from "../types/api";
 
 interface AvatarProps {
     user: { id: number; displayName: string; avatarUrl?: string | null };
@@ -35,10 +35,13 @@ export default function Avatar({ user, size = 40, status }: AvatarProps) {
     return (
         <span className="avatar-wrapper" style={{ width: size, height: size }}>
             {avatar}
+            {/* Forme (point, croissant, barre, anneau) + texte pour les lecteurs d'écran : jamais la couleur seule. */}
             <span
                 className={`status-dot status-${status.toLowerCase()}`}
                 style={{ width: dot, height: dot }}
                 title={STATUS_LABELS[status]}
+                role="img"
+                aria-label={STATUS_LABELS[status]}
             />
         </span>
     );

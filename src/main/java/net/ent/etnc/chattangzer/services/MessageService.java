@@ -301,10 +301,10 @@ public class MessageService {
         return result;
     }
 
-    /** Aperçu court d'un message ; une photo seule devient « 📷 Photo ». */
+    /** Aperçu court d'un message ; une photo seule devient « Photo ». */
     static String truncate(String content) {
         if (content.isBlank()) {
-            return "📷 Photo";
+            return "Photo";
         }
         return content.length() <= PREVIEW_LENGTH ? content : content.substring(0, PREVIEW_LENGTH) + "…";
     }

@@ -48,7 +48,7 @@ export default function NewDmModal({ onClose }: { onClose: () => void }) {
             <div className="form">
                 <Field label="Rechercher une personne" hint="Par son nom d'utilisateur ou son nom affiché.">
                     {(control) => (
-                        <input {...control} type="search" value={query} onChange={(e) => setQuery(e.target.value)} autoComplete="off" />
+                        <input {...control} type="text" enterKeyHint="search" value={query} onChange={(e) => setQuery(e.target.value)} autoComplete="off" />
                     )}
                 </Field>
                 <div className="user-results" aria-live="polite">

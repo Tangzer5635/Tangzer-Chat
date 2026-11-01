@@ -241,15 +241,11 @@
     margin-top: var(--space-2);
 }
 
-.field-error, .form-error {
+.field-error {
     margin: 0;
     color: var(--error);
     font-size: var(--text-sm);
     font-weight: var(--weight-semibold);
-}
-
-.form-error {
-    margin-top: var(--space-3);
 }
 
 /* Trait rouge à gauche d'un champ en erreur. */

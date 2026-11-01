@@ -1,5 +1,5 @@
 import { CheckCheck, FaceSlightlySmilingPlus, Pencil, Reply, Trash } from "lucide-react";
-import { useState, type KeyboardEvent } from "react";
+import { useRef, useState, type KeyboardEvent } from "react";
 
 import { useLiveUser } from "../../context/users";
 import { QUICK_REACTIONS } from "../../lib/choices";
@@ -8,6 +8,7 @@ import { formatDateTime, formatTime } from "../../lib/messageRows";
 import type { Message, User } from "../../types/api";
 import Avatar from "../Avatar";
 import AttachmentGrid from "./AttachmentGrid";
+import { useDismiss } from "../ui/useDismiss";
 import MessageText from "./MessageText";
 
 interface MessageItemProps {
@@ -34,6 +35,9 @@ export default function MessageItem(props: MessageItemProps) {
     const { message, showHeader, me, canModerate, editing } = props;
     const [pickerOpen, setPickerOpen] = useState(false);
     const [draft, setDraft] = useState(message.content);
+    const pickerRef = useRef<HTMLDivElement>(null);
+    const pickerButtonRef = useRef<HTMLButtonElement>(null);
+    useDismiss(pickerOpen, () => setPickerOpen(false), pickerRef, pickerButtonRef);
 
     const author = useLiveUser(message.author);
     const isOwn = message.author.id === me.id;
@@ -45,6 +49,7 @@ export default function MessageItem(props: MessageItemProps) {
     if (mentioned) classes.push("mentioned");
     if (message.pending) classes.push("pending");
     if (editing) classes.push("editing");
+    if (pickerOpen) classes.push("picking");
 
     const onEditKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === "Escape") {
@@ -57,7 +62,8 @@ export default function MessageItem(props: MessageItemProps) {
     };
 
     return (
-        <div className={classes.join(" ")} id={`message-${message.id}`}>
+        // Chaque message reçoit le focus avec les flèches (voir MessageList) ; ses actions s'affichent alors.
+        <article className={classes.join(" ")} id={`message-${message.id}`} tabIndex={-1}>
             {message.replyTo && (
                 <button className="reply-preview" onClick={() => props.onJumpTo(message.replyTo!.id)}>
                     <span className="sr-only">En réponse à</span>
@@ -72,13 +78,17 @@ export default function MessageItem(props: MessageItemProps) {
                 <div className="message-gutter">
                     {showHeader ? (
                         <>
-                            <button className="avatar-button" onClick={() => props.onOpenProfile?.(author)} aria-label={`Profil de ${author.displayName}`}>
+                            {/* Doublon du nom de l'auteur (cliquable juste à côté) : ignoré au clavier et à l'écoute. */}
+                            <button className="avatar-button" onClick={() => props.onOpenProfile?.(author)} tabIndex={-1} aria-hidden="true">
                                 <Avatar user={author} />
                             </button>
                             <time className="message-compact-time">{formatTime(message.createdAt)}</time>
                         </>
                     ) : (
-                        <time className="message-hover-time" title={formatDateTime(message.createdAt)}>{formatTime(message.createdAt)}</time>
+                        <>
+                            <span className="sr-only">{author.displayName}, </span>
+                            <time className="message-hover-time" dateTime={message.createdAt} title={formatDateTime(message.createdAt)}>{formatTime(message.createdAt)}</time>
+                        </>
                     )}
                 </div>
 
@@ -147,7 +157,7 @@ export default function MessageItem(props: MessageItemProps) {
 
             {confirmed && !editing && (
                 <div className="message-toolbar">
-                    <button title="Ajouter une réaction" aria-label="Ajouter une réaction" aria-expanded={pickerOpen} onClick={() => setPickerOpen((v) => !v)}>
+                    <button ref={pickerButtonRef} title="Ajouter une réaction" aria-label="Ajouter une réaction" aria-expanded={pickerOpen} onClick={() => setPickerOpen((v) => !v)}>
                         <FaceSlightlySmilingPlus size={18} />
                     </button>
                     <button title="Répondre" aria-label="Répondre" onClick={props.onReply}>
@@ -174,10 +184,12 @@ export default function MessageItem(props: MessageItemProps) {
             )}
 
             {pickerOpen && (
-                <div className="reaction-picker" onMouseLeave={() => setPickerOpen(false)}>
-                    {QUICK_REACTIONS.map((emoji) => (
+                <div className="reaction-picker" ref={pickerRef} role="group" aria-label="Réactions rapides">
+                    {QUICK_REACTIONS.map((emoji, index) => (
                         <button
                             key={emoji}
+                            aria-label={`Réagir avec ${emoji}`}
+                            autoFocus={index === 0}
                             onClick={() => {
                                 props.onReact(emoji);
                                 setPickerOpen(false);
@@ -188,6 +200,6 @@ export default function MessageItem(props: MessageItemProps) {
                     ))}
                 </div>
             )}
-        </div>
+        </article>
     );
 }
