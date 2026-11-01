@@ -133,12 +133,12 @@ public class AttachmentService {
     }
 
     /**
-     * Ménage quotidien : photos jamais postées depuis 24 h, et fichiers dont
+     * Ménage quotidien : images utilisées nulle part depuis 24 h, et fichiers dont
      * l'entrée a disparu de la base (message, salon ou serveur supprimé).
      */
     @Scheduled(cron = "0 17 4 * * *")
     public void cleanUp() {
-        List<Attachment> orphans = attachmentRepository.findAllByMessageIdIsNullAndCreatedAtBefore(Instant.now().minus(ORPHAN_DELAY));
+        List<Attachment> orphans = attachmentRepository.findUnused(Instant.now().minus(ORPHAN_DELAY));
         orphans.forEach(a -> storage.delete(a.getId()));
         attachmentRepository.deleteAll(orphans);
 

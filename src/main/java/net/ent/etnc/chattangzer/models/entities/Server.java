@@ -35,6 +35,9 @@ public class Server {
     /** Emoji servant d'icône, ou null pour afficher les initiales. */
     private String icon;
 
+    /** Image servant d'icône (prioritaire sur l'emoji), ou null. */
+    private String iconImageId;
+
     @Column(nullable = false)
     private String color;
 

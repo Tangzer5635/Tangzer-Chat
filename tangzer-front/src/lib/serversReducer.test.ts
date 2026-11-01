@@ -12,6 +12,7 @@ const server = (id: number, overrides: Partial<Server> = {}): Server => ({
     name: `Serveur ${id}`,
     description: null,
     icon: null,
+    iconUrl: null,
     color: "#5865f2",
     isPublic: false,
     isDefault: false,
@@ -37,10 +38,12 @@ describe("serversReducer", () => {
     it("garde mon rôle et les salons quand les infos du serveur changent", () => {
         const state = serversReducer(loaded(server(1, { myRole: "OWNER" })), {
             type: "serverInfoUpdated",
-            server: server(1, { name: "Nouveau nom", icon: "🔥", myRole: null, channels: [] }),
+            server: server(1, { name: "Nouveau nom", icon: "🔥", iconUrl: "/api/attachments/x", myRole: null, channels: [] }),
         });
 
-        expect(state.servers[0]).toMatchObject({ name: "Nouveau nom", icon: "🔥", myRole: "OWNER" });
+        expect(state.servers[0]).toMatchObject({
+            name: "Nouveau nom", icon: "🔥", iconUrl: "/api/attachments/x", myRole: "OWNER",
+        });
         expect(state.servers[0].channels).toHaveLength(1);
     });
 

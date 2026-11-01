@@ -55,6 +55,7 @@ export function serversReducer(state: ServersState, action: ServersAction): Serv
                 name: action.server.name,
                 description: action.server.description,
                 icon: action.server.icon,
+                iconUrl: action.server.iconUrl,
                 color: action.server.color,
                 isPublic: action.server.isPublic,
             }));

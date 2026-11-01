@@ -1,8 +1,11 @@
 package net.ent.etnc.chattangzer.services;
 
 import net.ent.etnc.chattangzer.exceptions.ApiException;
+import net.ent.etnc.chattangzer.models.dtos.ProfileRequests;
+import net.ent.etnc.chattangzer.models.dtos.UserDto;
 import net.ent.etnc.chattangzer.models.entities.User;
 import net.ent.etnc.chattangzer.models.entities.UserStatus;
+import net.ent.etnc.chattangzer.repositories.AttachmentRepository;
 import net.ent.etnc.chattangzer.repositories.UserRepository;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -11,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 @Service
@@ -21,22 +25,33 @@ public class UserService {
     /** BCrypt ignore tout ce qui dépasse 72 octets. */
     public static final int PASSWORD_MAX_LENGTH = 72;
     public static final int DISPLAY_NAME_MAX_LENGTH = 32;
+    public static final int BIO_MAX_LENGTH = 190;
+    public static final Set<String> THEMES = Set.of("tangzer", "minuit", "clair", "neon", "sakura", "foret");
+    public static final int FONT_SIZE_MIN = 12;
+    public static final int FONT_SIZE_MAX = 20;
+    private static final Pattern COLOR_PATTERN = Pattern.compile("^#[0-9a-fA-F]{6}$");
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final ServerService serverService;
     private final PresenceService presenceService;
+    private final AttachmentRepository attachmentRepository;
+    private final RealtimeService realtime;
 
     public UserService(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
             ServerService serverService,
-            PresenceService presenceService
+            PresenceService presenceService,
+            AttachmentRepository attachmentRepository,
+            RealtimeService realtime
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.serverService = serverService;
         this.presenceService = presenceService;
+        this.attachmentRepository = attachmentRepository;
+        this.realtime = realtime;
     }
 
     /** "  Tanguy " devient "tanguy" : les usernames sont insensibles à la casse. */
@@ -52,13 +67,7 @@ public class UserService {
             throw ApiException.badRequest(
                     "Le nom d'utilisateur doit faire 3 à 20 caractères (lettres, chiffres, point ou tiret bas)");
         }
-        if (password == null || password.length() < PASSWORD_MIN_LENGTH) {
-            throw ApiException.badRequest(
-                    "Le mot de passe doit faire au moins " + PASSWORD_MIN_LENGTH + " caractères");
-        }
-        if (password.length() > PASSWORD_MAX_LENGTH) {
-            throw ApiException.badRequest("Le mot de passe est trop long");
-        }
+        validatePassword(password);
 
         String displayName = normalizeDisplayName(rawDisplayName, username);
 
@@ -83,6 +92,98 @@ public class UserService {
         user.setCustomStatus(Texts.optional(rawCustomStatus, 80, "Le statut personnalisé"));
         presenceService.preferenceChanged(userId, user.getStatus(), user.getCustomStatus());
         return user;
+    }
+
+    /** Nom affiché, bio, couleur de bannière, photo de profil. Les autres voient le changement en direct. */
+    @Transactional
+    public User updateProfile(Long userId, ProfileRequests.Profile request) {
+        User user = getById(userId);
+
+        if (request.displayName() != null) {
+            user.setDisplayName(normalizeDisplayName(request.displayName(), user.getUsername()));
+        }
+        if (request.bio() != null) {
+            String bio = request.bio().strip();
+            if (Texts.length(bio) > BIO_MAX_LENGTH) {
+                throw ApiException.badRequest("La bio ne doit pas dépasser " + BIO_MAX_LENGTH + " caractères");
+            }
+            user.setBio(bio.isEmpty() ? null : bio);
+        }
+        if (request.bannerColor() != null) {
+            user.setBannerColor(normalizeOptionalColor(request.bannerColor()));
+        }
+        if (request.avatarId() != null) {
+            user.setAvatarId(request.avatarId().isBlank() ? null : requireOwnImage(userId, request.avatarId()));
+        }
+
+        realtime.toTopic("/topic/users", "USER_UPDATED", UserDto.from(user));
+        return user;
+    }
+
+    /** Thème, couleur d'accent, taille du texte, mode compact. */
+    @Transactional
+    public User updatePreferences(Long userId, ProfileRequests.Preferences request) {
+        User user = getById(userId);
+
+        if (request.theme() != null) {
+            if (!THEMES.contains(request.theme())) {
+                throw ApiException.badRequest("Thème inconnu");
+            }
+            user.setTheme(request.theme());
+        }
+        if (request.accentColor() != null) {
+            user.setAccentColor(normalizeOptionalColor(request.accentColor()));
+        }
+        if (request.fontSize() != null) {
+            if (request.fontSize() < FONT_SIZE_MIN || request.fontSize() > FONT_SIZE_MAX) {
+                throw ApiException.badRequest("La taille du texte va de " + FONT_SIZE_MIN + " à " + FONT_SIZE_MAX + " px");
+            }
+            user.setFontSize(request.fontSize());
+        }
+        if (request.compact() != null) {
+            user.setCompact(request.compact());
+        }
+        return user;
+    }
+
+    @Transactional
+    public void changePassword(Long userId, String currentPassword, String newPassword) {
+        User user = getById(userId);
+        if (currentPassword == null || !passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+            throw ApiException.badRequest("Le mot de passe actuel est incorrect");
+        }
+        validatePassword(newPassword);
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+    }
+
+    /** Une image que j'ai envoyée et qui n'est pas déjà dans un message. */
+    private String requireOwnImage(Long userId, String attachmentId) {
+        return attachmentRepository.findById(attachmentId)
+                .filter(a -> a.getUploaderId().equals(userId) && a.getMessageId() == null)
+                .orElseThrow(() -> ApiException.badRequest("Cette image n'est pas disponible, renvoie-la"))
+                .getId();
+    }
+
+    private static void validatePassword(String password) {
+        if (password == null || password.length() < PASSWORD_MIN_LENGTH) {
+            throw ApiException.badRequest(
+                    "Le mot de passe doit faire au moins " + PASSWORD_MIN_LENGTH + " caractères");
+        }
+        if (password.length() > PASSWORD_MAX_LENGTH) {
+            throw ApiException.badRequest("Le mot de passe est trop long");
+        }
+    }
+
+    /** "#AABBCC" → "#aabbcc", "" → null (couleur par défaut). */
+    static String normalizeOptionalColor(String raw) {
+        String color = raw.strip();
+        if (color.isEmpty()) {
+            return null;
+        }
+        if (!COLOR_PATTERN.matcher(color).matches()) {
+            throw ApiException.badRequest("La couleur doit être au format #rrggbb");
+        }
+        return color.toLowerCase(Locale.ROOT);
     }
 
     public User getById(Long id) {

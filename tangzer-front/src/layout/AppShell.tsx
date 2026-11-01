@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 
 import IncomingCallModal from "../components/calls/IncomingCallModal";
@@ -28,8 +28,23 @@ export default function AppShell() {
         pushToast(error.message, { tone: "error" });
     });
 
+    // Sur téléphone : la liste des serveurs et des salons s'ouvre en tiroir (☰),
+    // et se referme dès qu'on choisit un lien.
+    const [navOpen, setNavOpen] = useState(false);
+
     return (
-        <div className="app-shell">
+        <div
+            className={navOpen ? "app-shell nav-open" : "app-shell"}
+            onClickCapture={(e) => {
+                if ((e.target as HTMLElement).closest("a")) {
+                    setNavOpen(false);
+                }
+            }}
+        >
+            <button className="mobile-nav-button" onClick={() => setNavOpen((open) => !open)} aria-label="Menu">
+                {navOpen ? "✕" : "☰"}
+            </button>
+            {navOpen && <div className="mobile-nav-backdrop" onClick={() => setNavOpen(false)} />}
             <ConnectionBanner />
             <ServerRail />
             <Outlet />

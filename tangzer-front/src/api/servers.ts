@@ -7,6 +7,8 @@ export interface ServerForm {
     icon?: string;
     color?: string;
     isPublic?: boolean;
+    /** Image d'icône envoyée via /api/attachments, ou "" pour la retirer. */
+    iconImageId?: string;
 }
 
 export const listMyServers = () => api<Server[]>("/api/servers");

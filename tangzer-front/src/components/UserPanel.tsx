@@ -8,6 +8,7 @@ import { useToasts } from "../context/toasts";
 import { SELECTABLE_STATUSES, STATUS_LABELS } from "../lib/presence";
 import type { UserStatus } from "../types/api";
 import Avatar from "./Avatar";
+import SettingsModal from "./settings/SettingsModal";
 
 /** Bas de la barre latérale : mon statut (cliquer pour le changer) et déconnexion. */
 export default function UserPanel() {
@@ -17,6 +18,7 @@ export default function UserPanel() {
     const navigate = useNavigate();
 
     const [menuOpen, setMenuOpen] = useState(false);
+    const [settingsOpen, setSettingsOpen] = useState(false);
     const [customStatus, setCustomStatus] = useState(user?.customStatus ?? "");
     const panelRef = useRef<HTMLDivElement>(null);
 
@@ -69,6 +71,14 @@ export default function UserPanel() {
             </button>
             <button
                 className="icon-button"
+                title="Paramètres"
+                aria-label="Paramètres"
+                onClick={() => setSettingsOpen(true)}
+            >
+                ⚙️
+            </button>
+            <button
+                className="icon-button"
                 title="Se déconnecter"
                 aria-label="Se déconnecter"
                 onClick={() => {
@@ -78,6 +88,7 @@ export default function UserPanel() {
             >
                 ⏻
             </button>
+            {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
 
             {menuOpen && (
                 <div className="status-menu" role="menu">

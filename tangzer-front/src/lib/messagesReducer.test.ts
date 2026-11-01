@@ -22,6 +22,23 @@ const withHistory = (...messages: Message[]): MessagesState =>
     messagesReducer(initialMessagesState, { type: "historyLoaded", messages, hasMore: true });
 
 describe("messagesReducer", () => {
+    it("garde les messages arrivés en direct pendant le chargement de l'historique", () => {
+        let state = messagesReducer(initialMessagesState, { type: "received", message: message(5) });
+        state = messagesReducer(state, {
+            type: "pendingAdded", message: message(-1, { nonce: "n", pending: true }),
+        });
+        state = messagesReducer(state, { type: "historyLoaded", messages: [message(3), message(4)], hasMore: false });
+
+        expect(state.messages.map((m) => m.id)).toEqual([3, 4, 5, -1]);
+    });
+
+    it("ne duplique pas un message reçu en direct et déjà présent dans l'historique", () => {
+        let state = messagesReducer(initialMessagesState, { type: "received", message: message(5) });
+        state = messagesReducer(state, { type: "historyLoaded", messages: [message(4), message(5)], hasMore: false });
+
+        expect(state.messages.map((m) => m.id)).toEqual([4, 5]);
+    });
+
     it("ajoute les messages plus anciens au début, sans doublon", () => {
         let state = withHistory(message(3), message(4));
         state = messagesReducer(state, { type: "olderLoading" });

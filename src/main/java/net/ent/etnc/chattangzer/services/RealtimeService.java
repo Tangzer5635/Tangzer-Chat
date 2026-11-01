@@ -43,6 +43,11 @@ public class RealtimeService {
                 username, "/queue/events", new RealtimeEvent(type, payload)));
     }
 
+    /** Événement pour tous les utilisateurs connectés (ex. /topic/users : profils modifiés). */
+    public void toTopic(String topic, String type, Object payload) {
+        afterCommit(() -> messagingTemplate.convertAndSend(topic, new RealtimeEvent(type, payload)));
+    }
+
     public void toUserCalls(String username, String type, Object payload) {
         afterCommit(() -> messagingTemplate.convertAndSendToUser(
                 username, "/queue/calls", new RealtimeEvent(type, payload)));

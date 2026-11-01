@@ -4,15 +4,37 @@ export interface User {
     id: number;
     username: string;
     displayName: string;
+    /** Photo de profil, ou null pour les initiales. */
+    avatarUrl?: string | null;
 }
 
 /** Statut : les quatre premiers se choisissent, OFFLINE est calculé par le serveur. */
 export type UserStatus = "ONLINE" | "IDLE" | "DND" | "INVISIBLE" | "OFFLINE";
 
-/** L'utilisateur connecté, avec ses préférences. */
-export interface Me extends User {
+export type ThemeId = "tangzer" | "minuit" | "clair" | "neon" | "sakura" | "foret";
+
+/** Préférences d'apparence (enregistrées sur le compte). */
+export interface Appearance {
+    theme: ThemeId;
+    accentColor: string | null;
+    fontSize: number;
+    compact: boolean;
+}
+
+/** L'utilisateur connecté, avec son profil et ses préférences. */
+export interface Me extends User, Appearance {
     status: UserStatus;
     customStatus: string | null;
+    bannerColor: string | null;
+    bio: string | null;
+}
+
+/** Carte de profil d'un utilisateur. */
+export interface Profile {
+    user: User;
+    bannerColor: string | null;
+    bio: string | null;
+    createdAt: string;
 }
 
 /** Présence d'un utilisateur telle que les autres la voient. */
@@ -40,6 +62,7 @@ export interface Server {
     name: string;
     description: string | null;
     icon: string | null;
+    iconUrl: string | null;
     color: string;
     isPublic: boolean;
     isDefault: boolean;
@@ -55,6 +78,7 @@ export interface DiscoverServer {
     name: string;
     description: string | null;
     icon: string | null;
+    iconUrl: string | null;
     color: string;
     memberCount: number;
     joined: boolean;

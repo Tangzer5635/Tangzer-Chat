@@ -54,8 +54,10 @@ public class StompSubscriptionGuard implements ChannelInterceptor {
 
     boolean isAllowed(String destination, Long userId) {
         // Files personnelles : Spring les limite déjà à l'utilisateur connecté.
-        // Présence : qui est en ligne, visible par tous les utilisateurs connectés.
-        if (destination.startsWith("/user/queue/") || destination.equals("/topic/presence")) {
+        // Présence et profils : visibles par tous les utilisateurs connectés.
+        if (destination.startsWith("/user/queue/")
+                || destination.equals("/topic/presence")
+                || destination.equals("/topic/users")) {
             return true;
         }
 

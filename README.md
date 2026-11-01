@@ -5,7 +5,8 @@ Tangzer est une messagerie instantanée inspirée de Discord, développée avec
 
 ![Tangzer](tangzer-front/public/favicon.jpg)
 
-La feuille de route complète est dans [`docs/ROADMAP.md`](docs/ROADMAP.md).
+La feuille de route complète est dans [`docs/ROADMAP.md`](docs/ROADMAP.md),
+et la liste de tout ce qu'il y a à essayer dans [`docs/GUIDE_DE_TEST.md`](docs/GUIDE_DE_TEST.md).
 
 ## ✨ Fonctionnalités
 
@@ -33,6 +34,11 @@ La feuille de route complète est dans [`docs/ROADMAP.md`](docs/ROADMAP.md).
 - **Présence** : en ligne, inactif (automatique après 5 min), ne pas déranger (plus de
   notifications), invisible ; statut personnalisé (« 🎮 En partie ») ; plusieurs onglets gérés ;
   membres hors ligne regroupés et grisés.
+- **Personnalisation** : photo de profil (recadrée automatiquement), nom affiché, bio, couleur
+  de bannière, carte de profil ; 6 thèmes (Tangzer, Minuit, Clair, Néon, Sakura, Forêt), couleur
+  d'accent, taille du texte, mode compact ; notifications du bureau et sons ; choix du micro et
+  de la caméra avec test ; changement de mot de passe ; image d'icône pour les serveurs.
+- **Mobile** : la navigation s'ouvre en tiroir (☰).
 - **Non-lus** : salons en gras, badges de mentions, titre de l'onglet « (3) Tangzer ».
 - **Messages privés** enregistrés, avec les mêmes possibilités que les salons, accusé « Vu »,
   recherche d'utilisateurs, notifications avec aperçu (voir [`docs/MESSAGES_PRIVES.md`](docs/MESSAGES_PRIVES.md)).
@@ -169,6 +175,7 @@ Navigateur ──HTTPS──▶ nginx (frontend) ──▶ /api  ──▶ Sprin
 | `/topic/channels/{id}` | événements d'un salon (messages, réactions, saisie) |
 | `/user/queue/events` | événements personnels (serveur rejoint, expulsion, nouveau MP) |
 | `/topic/presence` | changements de présence (en ligne, inactif, statut personnalisé…) |
+| `/topic/users` | profils modifiés (nom affiché, photo) |
 | `/user/queue/calls` | signalisation WebRTC des appels (offre, réponse, candidats) |
 | `/user/queue/errors` | erreurs d'une action STOMP |
 

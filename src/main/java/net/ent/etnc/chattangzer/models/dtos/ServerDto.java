@@ -10,6 +10,7 @@ public record ServerDto(
         String name,
         String description,
         String icon,
+        String iconUrl,
         String color,
         boolean isPublic,
         boolean isDefault,

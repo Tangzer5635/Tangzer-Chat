@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, type ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { fetchUnread, markChannelRead } from "../api/messages";
 import { toPlainText } from "../lib/markdown";
+import { notify } from "../lib/notify";
 import { initialUnreadState, unreadReducer } from "../lib/unreadReducer";
 import { useSubscription } from "../realtime/hooks";
 import type { ChannelActivity, DmActivity, RealtimeEvent, Server } from "../types/api";
@@ -30,6 +32,7 @@ export function UnreadProvider({ children }: { children: ReactNode }) {
     const { pushToast } = useToasts();
     const [state, dispatch] = useReducer(unreadReducer, initialUnreadState);
     const activeChannel = useRef<number | null>(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchUnread()
@@ -54,11 +57,11 @@ export function UnreadProvider({ children }: { children: ReactNode }) {
         // « Ne pas déranger » : les compteurs bougent, mais pas de notification.
         if (mentioned && user.status !== "DND") {
             const channel = server.channels.find((c) => c.id === activity.channelId);
-            pushToast(`🔔 Tu as été mentionné dans #${channel?.name ?? "?"} (${server.name})`, {
-                link: `/app/servers/${server.id}/channels/${activity.channelId}`,
-            });
+            const link = `/app/servers/${server.id}/channels/${activity.channelId}`;
+            pushToast(`🔔 Tu as été mentionné dans #${channel?.name ?? "?"} (${server.name})`, { link });
+            notify(`Mention dans #${channel?.name ?? "?"}`, server.name, () => navigate(link));
         }
-    }, [user, pushToast]);
+    }, [user, pushToast, navigate]);
 
     // Messages privés : chaque message reçu compte comme une notification.
     useSubscription<RealtimeEvent>("/user/queue/events", (event) => {
@@ -75,9 +78,9 @@ export function UnreadProvider({ children }: { children: ReactNode }) {
             return;
         }
         const preview = toPlainText(message.content) || "📷 Photo";
-        pushToast(`💬 ${message.author.displayName} : ${preview.length > 60 ? `${preview.slice(0, 60)}…` : preview}`, {
-            link: `/app/dm/${channelId}`,
-        });
+        const short = preview.length > 60 ? `${preview.slice(0, 60)}…` : preview;
+        pushToast(`💬 ${message.author.displayName} : ${short}`, { link: `/app/dm/${channelId}` });
+        notify(message.author.displayName, short, () => navigate(`/app/dm/${channelId}`));
     });
 
     const setActiveChannel = useCallback((channelId: number | null) => {

@@ -6,6 +6,7 @@ public record DiscoverServerDto(
         String name,
         String description,
         String icon,
+        String iconUrl,
         String color,
         long memberCount,
         boolean joined
