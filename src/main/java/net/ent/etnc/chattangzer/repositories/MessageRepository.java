@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface MessageRepository extends JpaRepository<Message, Long> {
 
@@ -32,9 +33,11 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     @Query("update Message m set m.replyTo = null where m.replyTo.id = :messageId")
     void detachReplies(@Param("messageId") Long messageId);
 
+    Optional<Message> findFirstByChannelIdOrderByIdDesc(Long channelId);
+
     /**
      * Nombre de messages non lus par salon (hors mes propres messages),
-     * pour tous les salons des serveurs dont je suis membre.
+     * pour les salons de mes serveurs et mes conversations privées.
      */
     @Query("""
             select new net.ent.etnc.chattangzer.models.dtos.UnreadDto(c.id, s.id, count(m))
@@ -42,7 +45,8 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
             join m.channel c
             left join c.server s
             where m.author.id <> :userId
-              and s.id in (select ms.server.id from Membership ms where ms.user.id = :userId)
+              and (s.id in (select ms.server.id from Membership ms where ms.user.id = :userId)
+                   or c.dmUser1.id = :userId or c.dmUser2.id = :userId)
               and m.id > coalesce((select r.lastReadMessageId from ChannelRead r
                                    where r.userId = :userId and r.channelId = c.id), 0)
             group by c.id, s.id

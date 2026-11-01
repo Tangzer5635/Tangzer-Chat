@@ -6,7 +6,7 @@ import Toasts from "./components/Toasts";
 import { AuthProvider } from "./context/AuthContext";
 import { ToastProvider } from "./context/ToastContext";
 import AppShell from "./layout/AppShell";
-import DirectMessages from "./pages/DirectMessages";
+import DirectMessagesPage from "./pages/DirectMessagesPage";
 import ExplorePage from "./pages/ExplorePage";
 import HomeRedirect from "./pages/HomeRedirect";
 import InvitePage from "./pages/InvitePage";
@@ -32,7 +32,8 @@ export default function App() {
                                 <Route path="servers/:serverId" element={<ServerPage />} />
                                 <Route path="servers/:serverId/channels/:channelId" element={<ServerPage />} />
                                 <Route path="explore" element={<ExplorePage />} />
-                                <Route path="dm" element={<DirectMessages />} />
+                                <Route path="dm" element={<DirectMessagesPage />} />
+                                <Route path="dm/:channelId" element={<DirectMessagesPage />} />
                             </Route>
                         </Route>
 

@@ -7,6 +7,7 @@ import net.ent.etnc.chattangzer.services.UserService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -27,8 +28,9 @@ public class UserController {
         return UserDto.from(userService.getById(me.id()));
     }
 
+    /** Recherche d'utilisateurs (?search=), pour démarrer une conversation privée. */
     @GetMapping
-    public List<UserDto> list() {
-        return userService.listAll().stream().map(UserDto::from).toList();
+    public List<UserDto> search(@RequestParam(required = false) String search) {
+        return userService.search(search).stream().map(UserDto::from).toList();
     }
 }

@@ -21,6 +21,8 @@ interface MessageItemProps {
     onReact: (emoji: string) => void;
     onRetry: () => void;
     onJumpTo: (messageId: number) => void;
+    /** Dernier de mes messages lu par l'autre participant (conversation privée). */
+    seen?: boolean;
 }
 
 /** Un message : en-tête éventuel, contenu mis en forme, réactions et barre d'actions au survol. */
@@ -98,6 +100,8 @@ export default function MessageItem(props: MessageItemProps) {
                             {message.editedAt && <span className="message-edited" title={formatDateTime(message.editedAt)}> (modifié)</span>}
                         </div>
                     )}
+
+                    {props.seen && <p className="message-seen">✓✓ Vu</p>}
 
                     {message.failed && (
                         <p className="message-failed">

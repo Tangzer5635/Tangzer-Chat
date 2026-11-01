@@ -17,7 +17,10 @@ import lombok.Setter;
 
 import java.time.Instant;
 
-/** Salon d'un serveur. */
+/**
+ * Salon d'un serveur, ou conversation privée (type DM, sans serveur,
+ * entre dmUser1 et dmUser2 avec dmUser1.id < dmUser2.id).
+ */
 @Entity
 @Table(name = "channels")
 @Getter
@@ -48,6 +51,26 @@ public class Channel {
 
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "dm_user1_id")
+    private User dmUser1;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "dm_user2_id")
+    private User dmUser2;
+
+    /** Date du dernier message (sert à trier les conversations privées). */
+    private Instant lastMessageAt;
+
+    public boolean isDirect() {
+        return type == ChannelType.DM;
+    }
+
+    /** Vrai si l'utilisateur est l'un des deux participants de cette conversation privée. */
+    public boolean isParticipant(Long userId) {
+        return isDirect() && (dmUser1.getId().equals(userId) || dmUser2.getId().equals(userId));
+    }
 
     public Channel(Server server, String name, ChannelType type, int position) {
         this.server = server;
