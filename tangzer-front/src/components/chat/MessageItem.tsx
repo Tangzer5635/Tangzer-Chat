@@ -1,5 +1,6 @@
 import { useState, type KeyboardEvent } from "react";
 
+import { useLiveUser } from "../../context/users";
 import { QUICK_REACTIONS } from "../../lib/choices";
 import { mentionsUser, toPlainText } from "../../lib/markdown";
 import { formatDateTime, formatTime } from "../../lib/messageRows";
@@ -24,6 +25,7 @@ interface MessageItemProps {
     onJumpTo: (messageId: number) => void;
     /** Dernier de mes messages lu par l'autre participant (conversation privée). */
     seen?: boolean;
+    onOpenProfile?: (user: User) => void;
 }
 
 /** Un message : en-tête éventuel, contenu mis en forme, réactions et barre d'actions au survol. */
@@ -32,6 +34,7 @@ export default function MessageItem(props: MessageItemProps) {
     const [pickerOpen, setPickerOpen] = useState(false);
     const [draft, setDraft] = useState(message.content);
 
+    const author = useLiveUser(message.author);
     const isOwn = message.author.id === me.id;
     const mentioned = !isOwn && mentionsUser(message.content, me.username);
     const confirmed = !message.pending && !message.failed;
@@ -65,15 +68,24 @@ export default function MessageItem(props: MessageItemProps) {
 
             <div className="message-row">
                 <div className="message-gutter">
-                    {showHeader
-                        ? <Avatar user={message.author} />
-                        : <time className="message-hover-time" title={formatDateTime(message.createdAt)}>{formatTime(message.createdAt)}</time>}
+                    {showHeader ? (
+                        <>
+                            <button className="avatar-button" onClick={() => props.onOpenProfile?.(author)} aria-label={`Profil de ${author.displayName}`}>
+                                <Avatar user={author} />
+                            </button>
+                            <time className="message-compact-time">{formatTime(message.createdAt)}</time>
+                        </>
+                    ) : (
+                        <time className="message-hover-time" title={formatDateTime(message.createdAt)}>{formatTime(message.createdAt)}</time>
+                    )}
                 </div>
 
                 <div className="message-body">
                     {showHeader && (
                         <div className="message-meta">
-                            <strong>{message.author.displayName}</strong>
+                            <button className="author-name" onClick={() => props.onOpenProfile?.(author)}>
+                                {author.displayName}
+                            </button>
                             <time dateTime={message.createdAt} title={formatDateTime(message.createdAt)}>
                                 {formatTime(message.createdAt)}
                             </time>

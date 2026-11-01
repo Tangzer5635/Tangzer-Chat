@@ -1,13 +1,18 @@
 package net.ent.etnc.chattangzer.controllers;
 
 import net.ent.etnc.chattangzer.models.dtos.MeDto;
+import net.ent.etnc.chattangzer.models.dtos.ProfileDto;
+import net.ent.etnc.chattangzer.models.dtos.ProfileRequests;
 import net.ent.etnc.chattangzer.models.dtos.UserDto;
 import net.ent.etnc.chattangzer.models.entities.UserStatus;
 import net.ent.etnc.chattangzer.security.AuthUser;
 import net.ent.etnc.chattangzer.services.UserService;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,6 +43,29 @@ public class UserController {
     }
 
     public record StatusRequest(UserStatus status, String customStatus) {}
+
+    /** Nom affiché, bio, couleur de bannière, photo de profil. */
+    @PatchMapping("/me")
+    public MeDto updateProfile(@RequestBody ProfileRequests.Profile request, @AuthenticationPrincipal AuthUser me) {
+        return MeDto.from(userService.updateProfile(me.id(), request));
+    }
+
+    /** Thème, couleur d'accent, taille du texte, mode compact. */
+    @PutMapping("/me/preferences")
+    public MeDto updatePreferences(@RequestBody ProfileRequests.Preferences request, @AuthenticationPrincipal AuthUser me) {
+        return MeDto.from(userService.updatePreferences(me.id(), request));
+    }
+
+    @PutMapping("/me/password")
+    public ResponseEntity<Void> changePassword(@RequestBody ProfileRequests.Password request, @AuthenticationPrincipal AuthUser me) {
+        userService.changePassword(me.id(), request.currentPassword(), request.newPassword());
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{userId}/profile")
+    public ProfileDto profile(@PathVariable Long userId) {
+        return ProfileDto.from(userService.getById(userId));
+    }
 
     /** Recherche d'utilisateurs (?search=), pour démarrer une conversation privée. */
     @GetMapping

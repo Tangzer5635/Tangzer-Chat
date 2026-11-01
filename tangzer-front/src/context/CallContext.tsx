@@ -5,6 +5,7 @@ import { playJoinSound, playLeaveSound, SpeakingDetector, startRingtone } from "
 import { applyCallState, departedPeers } from "../calls/callsState";
 import { Mesh } from "../calls/mesh";
 import { pickVideoTrack } from "../calls/video";
+import { deviceConstraint, loadDevicePrefs } from "../lib/devicePrefs";
 import { randomId } from "../lib/id";
 import { useRealtimeConnected, useSubscription } from "../realtime/hooks";
 import { publish } from "../realtime/stomp";
@@ -128,10 +129,11 @@ export function CallProvider({ children }: { children: ReactNode }) {
 
         setConnecting(true);
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({
-                audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
-                video: false,
-            });
+            const audio = { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
+            const microphone = deviceConstraint(loadDevicePrefs().microphoneId);
+            // Le micro choisi dans les paramètres, sinon (débranché ?) celui par défaut.
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: { ...audio, ...microphone } })
+                .catch(() => navigator.mediaDevices.getUserMedia({ audio }));
             iceServersRef.current ??= (await fetchIceServers()).map((server) => ({
                 urls: server.urls,
                 username: server.username ?? undefined,
@@ -336,9 +338,10 @@ export function CallProvider({ children }: { children: ReactNode }) {
             cameraTrackRef.current = null;
         } else {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } },
-                });
+                const quality = { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } };
+                const camera = deviceConstraint(loadDevicePrefs().cameraId);
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { ...quality, ...camera } })
+                    .catch(() => navigator.mediaDevices.getUserMedia({ video: quality }));
                 cameraTrackRef.current = stream.getVideoTracks()[0];
             } catch {
                 pushToast("Impossible d'allumer la caméra (accès refusé ou aucune caméra).", { tone: "error" });

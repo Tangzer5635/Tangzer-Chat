@@ -6,12 +6,14 @@ import net.ent.etnc.chattangzer.models.dtos.DiscoverServerDto;
 import net.ent.etnc.chattangzer.models.dtos.MemberDto;
 import net.ent.etnc.chattangzer.models.dtos.ServerDto;
 import net.ent.etnc.chattangzer.models.dtos.ServerRequest;
+import net.ent.etnc.chattangzer.models.dtos.UserDto;
 import net.ent.etnc.chattangzer.models.entities.Channel;
 import net.ent.etnc.chattangzer.models.entities.ChannelType;
 import net.ent.etnc.chattangzer.models.entities.MemberRole;
 import net.ent.etnc.chattangzer.models.entities.Membership;
 import net.ent.etnc.chattangzer.models.entities.Server;
 import net.ent.etnc.chattangzer.models.entities.User;
+import net.ent.etnc.chattangzer.repositories.AttachmentRepository;
 import net.ent.etnc.chattangzer.repositories.ChannelRepository;
 import net.ent.etnc.chattangzer.repositories.InviteRepository;
 import net.ent.etnc.chattangzer.repositories.MembershipRepository;
@@ -49,6 +51,7 @@ public class ServerService {
     private final MembershipRepository membershipRepository;
     private final ChannelRepository channelRepository;
     private final InviteRepository inviteRepository;
+    private final AttachmentRepository attachmentRepository;
     private final UserRepository userRepository;
     private final AccessService accessService;
     private final RealtimeService realtime;
@@ -58,6 +61,7 @@ public class ServerService {
             MembershipRepository membershipRepository,
             ChannelRepository channelRepository,
             InviteRepository inviteRepository,
+            AttachmentRepository attachmentRepository,
             UserRepository userRepository,
             AccessService accessService,
             RealtimeService realtime
@@ -66,6 +70,7 @@ public class ServerService {
         this.membershipRepository = membershipRepository;
         this.channelRepository = channelRepository;
         this.inviteRepository = inviteRepository;
+        this.attachmentRepository = attachmentRepository;
         this.userRepository = userRepository;
         this.accessService = accessService;
         this.realtime = realtime;
@@ -114,6 +119,9 @@ public class ServerService {
         server.setDescription(Texts.optional(request.description(), 300, "La description"));
         server.setIcon(normalizeIcon(request.icon()));
         server.setPublicServer(Boolean.TRUE.equals(request.isPublic()));
+        if (request.iconImageId() != null && !request.iconImageId().isBlank()) {
+            server.setIconImageId(requireOwnImage(ownerId, request.iconImageId()));
+        }
         serverRepository.save(server);
 
         membershipRepository.save(new Membership(server, owner, MemberRole.OWNER));
@@ -144,6 +152,9 @@ public class ServerService {
         }
         if (request.isPublic() != null) {
             server.setPublicServer(request.isPublic());
+        }
+        if (request.iconImageId() != null) {
+            server.setIconImageId(request.iconImageId().isBlank() ? null : requireOwnImage(userId, request.iconImageId()));
         }
 
         realtime.toServer(serverId, "SERVER_UPDATED", toDto(server, null));
@@ -286,6 +297,7 @@ public class ServerService {
                 server.getName(),
                 server.getDescription(),
                 server.getIcon(),
+                UserDto.imageUrl(server.getIconImageId()),
                 server.getColor(),
                 server.isPublicServer(),
                 server.isDefaultServer(),
@@ -301,9 +313,18 @@ public class ServerService {
                 server.getName(),
                 server.getDescription(),
                 server.getIcon(),
+                UserDto.imageUrl(server.getIconImageId()),
                 server.getColor(),
                 membershipRepository.countByServerId(server.getId()),
                 accessService.isMember(server.getId(), userId));
+    }
+
+    /** Une image que j'ai envoyée et qui n'est pas déjà dans un message. */
+    private String requireOwnImage(Long userId, String attachmentId) {
+        return attachmentRepository.findById(attachmentId)
+                .filter(a -> a.getUploaderId().equals(userId) && a.getMessageId() == null)
+                .orElseThrow(() -> ApiException.badRequest("Cette image n'est pas disponible, renvoie-la"))
+                .getId();
     }
 
     private User getUser(Long userId) {

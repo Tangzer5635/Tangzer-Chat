@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useReducer, useState, type DragEvent, type ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 
 import * as messagesApi from "../../api/messages";
 import { useAuth } from "../../context/auth";
+import { useDms } from "../../context/dms";
 import { useToasts } from "../../context/toasts";
 import { useUnread } from "../../context/unread";
 import { randomId } from "../../lib/id";
@@ -10,6 +12,8 @@ import { initialMessagesState, messagesReducer } from "../../lib/messagesReducer
 import { useSubscription } from "../../realtime/hooks";
 import { publish } from "../../realtime/stomp";
 import type { Attachment, Message, Reaction, RealtimeEvent, User } from "../../types/api";
+import Modal from "../Modal";
+import ProfileCard from "../ProfileCard";
 import Composer from "./Composer";
 import MessageItem from "./MessageItem";
 import MessageList from "./MessageList";
@@ -54,6 +58,9 @@ export default function ChannelView(props: ChannelViewProps) {
     const [visible, setVisible] = useState(() => document.visibilityState === "visible");
     const [partnerReadId, setPartnerReadId] = useState(props.partnerReadId ?? 0);
     const [dragging, setDragging] = useState(false);
+    const [profileUser, setProfileUser] = useState<User | null>(null);
+    const { openWith } = useDms();
+    const navigate = useNavigate();
     const showError = useCallback((message: string) => pushToast(message, { tone: "error" }), [pushToast]);
     const uploads = useUploads(showError);
 
@@ -308,6 +315,7 @@ export default function ChannelView(props: ChannelViewProps) {
                             onRetry={() => retry(message)}
                             onJumpTo={jumpTo}
                             seen={message.id === seenMessageId}
+                            onOpenProfile={setProfileUser}
                         />
                     )}
                 />
@@ -321,6 +329,26 @@ export default function ChannelView(props: ChannelViewProps) {
                     </>
                 )}
             </div>
+
+            {profileUser && (
+                <Modal title="Profil" onClose={() => setProfileUser(null)}>
+                    <ProfileCard user={profileUser}>
+                        {profileUser.id !== me.id && (
+                            <button
+                                className="button-primary"
+                                onClick={() => openWith(profileUser.id)
+                                    .then((conversation) => {
+                                        setProfileUser(null);
+                                        navigate(`/app/dm/${conversation.channelId}`);
+                                    })
+                                    .catch((err) => pushToast(err instanceof Error ? err.message : "Conversation impossible.", { tone: "error" }))}
+                            >
+                                Envoyer un message
+                            </button>
+                        )}
+                    </ProfileCard>
+                </Modal>
+            )}
 
             <Composer
                 placeholder={placeholder}

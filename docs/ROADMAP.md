@@ -3,6 +3,8 @@
 Chaque phase est livrée dans sa propre branche et sa propre pull request.
 Les PR sont empilées : chacune part de la précédente et doit être fusionnée dans l'ordre.
 
+Toutes les phases sont livrées.
+
 | # | Phase | Branche |
 |---|---|---|
 | 0 | Fondations : nettoyage, configuration, Docker, CI | `claude/gracious-tesla-xs65x8` |
@@ -11,7 +13,7 @@ Les PR sont empilées : chacune part de la précédente et doit être fusionnée
 | 3 | Messages persistés, historique, édition, mise en forme | `claude/phase-3-messages` |
 | 4 | Messages privés | `claude/phase-4-mp` |
 | 5 | Photos (upload, aperçu, stockage) | `claude/phase-5-photos` |
-| 6 | Présence et statut | `claude/phase-6-presence` |
+| 6 | Présence et statut (avancée avant les appels) | `claude/phase-6-presence` |
 | 7 | Appels audio (WebRTC, salons vocaux) | `claude/phase-7-appels-audio` |
 | 8 | Appels vidéo et partage d'écran | `claude/phase-8-appels-video` |
 | 9 | Personnalisation (profil, avatar, thèmes) | `claude/phase-9-personnalisation` |

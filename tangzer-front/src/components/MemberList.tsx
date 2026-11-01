@@ -7,11 +7,12 @@ import { useDms } from "../context/dms";
 import { usePresence } from "../context/presence";
 import { useToasts } from "../context/toasts";
 import { applyMemberEvent } from "../lib/members";
-import { groupMembersByPresence, STATUS_LABELS } from "../lib/presence";
+import { groupMembersByPresence } from "../lib/presence";
 import { canChangeRole, canKick, ROLE_LABELS } from "../lib/permissions";
 import { useSubscription } from "../realtime/hooks";
 import type { Member, RealtimeEvent, Server } from "../types/api";
 import Avatar from "./Avatar";
+import ProfileCard from "./ProfileCard";
 
 /** Colonne de droite : membres du serveur, regroupés par rôle. */
 export default function MemberList({ server }: { server: Server }) {
@@ -75,59 +76,51 @@ export default function MemberList({ server }: { server: Server }) {
 
             {selectedMember && (
                 <div className="member-card">
-                    <div className="member-card-banner" style={{ background: server.color }} />
-                    <div className="member-card-body">
-                        <Avatar user={selectedMember.user} size={64} status={statusOf(selectedMember.user.id)} />
-                        <h4>{selectedMember.user.displayName}</h4>
-                        <p className="member-card-username">@{selectedMember.user.username} · {STATUS_LABELS[statusOf(selectedMember.user.id)]}</p>
-                        {customStatusOf(selectedMember.user.id) && (
-                            <p className="member-card-custom">{customStatusOf(selectedMember.user.id)}</p>
+                    <ProfileCard
+                        key={selectedMember.user.id}
+                        user={selectedMember.user}
+                        extra={
+                            <span className={`role-badge role-${selectedMember.role.toLowerCase()}`}>
+                                {ROLE_LABELS[selectedMember.role]} · depuis le {new Date(selectedMember.joinedAt).toLocaleDateString("fr-FR")}
+                            </span>
+                        }
+                    >
+                        {selectedMember.user.id !== user?.id && (
+                            <button
+                                className="button-primary"
+                                onClick={() => openWith(selectedMember.user.id)
+                                    .then((conversation) => navigate(`/app/dm/${conversation.channelId}`))
+                                    .catch((err) => pushToast(err instanceof Error ? err.message : "Conversation impossible.", { tone: "error" }))}
+                            >
+                                Message privé
+                            </button>
                         )}
-                        <span className={`role-badge role-${selectedMember.role.toLowerCase()}`}>
-                            {ROLE_LABELS[selectedMember.role]}
-                        </span>
-                        <p className="member-card-since">
-                            Membre depuis le {new Date(selectedMember.joinedAt).toLocaleDateString("fr-FR")}
-                        </p>
-
-                        <div className="member-card-actions">
-                            {selectedMember.user.id !== user?.id && (
-                                <button
-                                    className="button-primary"
-                                    onClick={() => openWith(selectedMember.user.id)
-                                        .then((conversation) => navigate(`/app/dm/${conversation.channelId}`))
-                                        .catch((err) => pushToast(err instanceof Error ? err.message : "Conversation impossible.", { tone: "error" }))}
-                                >
-                                    Message privé
-                                </button>
-                            )}
-                            {canChangeRole(server.myRole, selectedMember.role) && (
-                                <button
-                                    className="button-secondary"
-                                    onClick={() => run(
-                                        () => changeMemberRole(server.id, selectedMember.user.id,
-                                            selectedMember.role === "ADMIN" ? "MEMBER" : "ADMIN"),
-                                        selectedMember.role === "ADMIN"
-                                            ? `${selectedMember.user.displayName} n'est plus admin.`
-                                            : `${selectedMember.user.displayName} est maintenant admin.`
-                                    )}
-                                >
-                                    {selectedMember.role === "ADMIN" ? "Retirer admin" : "Nommer admin"}
-                                </button>
-                            )}
-                            {canKick(server.myRole, selectedMember.role, selectedMember.user.id === user?.id) && (
-                                <button
-                                    className="button-danger"
-                                    onClick={() => window.confirm(`Expulser ${selectedMember.user.displayName} ?`) && run(
-                                        () => kickMember(server.id, selectedMember.user.id),
-                                        `${selectedMember.user.displayName} a été expulsé.`
-                                    )}
-                                >
-                                    Expulser
-                                </button>
-                            )}
-                        </div>
-                    </div>
+                        {canChangeRole(server.myRole, selectedMember.role) && (
+                            <button
+                                className="button-secondary"
+                                onClick={() => run(
+                                    () => changeMemberRole(server.id, selectedMember.user.id,
+                                        selectedMember.role === "ADMIN" ? "MEMBER" : "ADMIN"),
+                                    selectedMember.role === "ADMIN"
+                                        ? `${selectedMember.user.displayName} n'est plus admin.`
+                                        : `${selectedMember.user.displayName} est maintenant admin.`
+                                )}
+                            >
+                                {selectedMember.role === "ADMIN" ? "Retirer admin" : "Nommer admin"}
+                            </button>
+                        )}
+                        {canKick(server.myRole, selectedMember.role, selectedMember.user.id === user?.id) && (
+                            <button
+                                className="button-danger"
+                                onClick={() => window.confirm(`Expulser ${selectedMember.user.displayName} ?`) && run(
+                                    () => kickMember(server.id, selectedMember.user.id),
+                                    `${selectedMember.user.displayName} a été expulsé.`
+                                )}
+                            >
+                                Expulser
+                            </button>
+                        )}
+                    </ProfileCard>
                 </div>
             )}
         </aside>

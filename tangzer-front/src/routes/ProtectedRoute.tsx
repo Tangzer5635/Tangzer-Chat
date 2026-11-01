@@ -6,6 +6,7 @@ import { DmProvider } from "../context/DmContext";
 import { PresenceProvider } from "../context/PresenceContext";
 import { ServersProvider } from "../context/ServersContext";
 import { UnreadProvider } from "../context/UnreadContext";
+import { UsersProvider } from "../context/UsersContext";
 
 /**
  * Pages réservées aux utilisateurs connectés.
@@ -26,6 +27,7 @@ export default function ProtectedRoute() {
 
     return (
         <ServersProvider key={user.id}>
+            <UsersProvider>
             <PresenceProvider>
                 <UnreadProvider>
                     <DmProvider>
@@ -35,6 +37,7 @@ export default function ProtectedRoute() {
                     </DmProvider>
                 </UnreadProvider>
             </PresenceProvider>
+            </UsersProvider>
         </ServersProvider>
     );
 }

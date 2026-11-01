@@ -47,6 +47,30 @@ public class User {
     /** Petit texte affiché sous le nom, ex. « 🎮 En train de jouer ». */
     private String customStatus;
 
+    /** Photo de profil (une image envoyée via /api/attachments), ou null. */
+    private String avatarId;
+
+    /** Couleur du bandeau de la carte de profil (#rrggbb). */
+    private String bannerColor;
+
+    /** « À propos de moi ». */
+    private String bio;
+
+    /** Thème de l'interface : tangzer, minuit, clair, neon, sakura, foret. */
+    @Column(nullable = false)
+    private String theme = "tangzer";
+
+    /** Couleur d'accent choisie (#rrggbb), ou null pour celle du thème. */
+    private String accentColor;
+
+    /** Taille du texte des messages, en pixels. */
+    @Column(nullable = false)
+    private int fontSize = 16;
+
+    /** Mode compact : messages plus serrés, sans grands avatars. */
+    @Column(nullable = false)
+    private boolean compact;
+
     public User(String username, String displayName, String passwordHash) {
         this.username = username;
         this.displayName = displayName;

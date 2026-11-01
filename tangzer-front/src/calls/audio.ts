@@ -33,6 +33,8 @@ function playNotes(notes: [number, number][], volume = 0.08) {
 }
 
 export const playJoinSound = () => playNotes([[523, 0.09], [784, 0.14]]);
+/** Petit « ding » de nouveau message ou de mention. */
+export const playMessageSound = () => playNotes([[988, 0.07], [1319, 0.12]], 0.05);
 export const playLeaveSound = () => playNotes([[784, 0.09], [523, 0.14]]);
 
 /** Sonnerie d'appel entrant, répétée jusqu'à l'appel de la fonction renvoyée. */

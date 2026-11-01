@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 
 import * as authApi from "../api/auth";
 import { clearToken, getToken, onUnauthorized, setToken } from "../api/http";
+import { applyAppearance } from "../lib/theme";
 import { connect, disconnect } from "../realtime/stomp";
 import type { Me } from "../types/api";
 import { AuthContext, type AuthContextValue } from "./auth";
@@ -33,6 +34,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .catch(() => clearToken())
             .finally(() => setLoading(false));
     }, []);
+
+    // L'apparence suit les préférences du compte (thème, accent, taille, compact).
+    const theme = user?.theme;
+    const accentColor = user?.accentColor ?? null;
+    const fontSize = user?.fontSize;
+    const compact = user?.compact;
+    useEffect(() => {
+        if (theme && fontSize !== undefined && compact !== undefined) {
+            applyAppearance({ theme, accentColor, fontSize, compact });
+        }
+    }, [theme, accentColor, fontSize, compact]);
 
     // Connexion temps réel tant qu'un utilisateur est connecté.
     const userId = user?.id;
