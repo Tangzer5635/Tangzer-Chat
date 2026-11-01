@@ -1,3 +1,4 @@
+import { Compass, Plus } from "lucide-react";
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 
@@ -21,7 +22,7 @@ export default function ServerRail() {
 
     return (
         <nav className="server-rail" aria-label="Serveurs">
-            <NavLink to="/app/dm" className={railClass} data-tooltip="Messages privés">
+            <NavLink to="/app/dm" className={railClass} data-tooltip="Messages privés" aria-label={unreadCount > 0 ? `Messages privés, ${unreadCount} non lu${unreadCount > 1 ? "s" : ""}` : "Messages privés"}>
                 <span className="rail-home">
                     <Logo size={28} />
                 </span>
@@ -40,6 +41,7 @@ export default function ServerRail() {
                         to={`/app/servers/${server.id}`}
                         className={({ isActive }) => `${railClass({ isActive })}${unread ? " unread" : ""}`}
                         data-tooltip={server.name}
+                        aria-label={mentionCount > 0 ? `${server.name}, ${mentionCount} mention${mentionCount > 1 ? "s" : ""}` : unread ? `${server.name}, non lu` : server.name}
                     >
                         <ServerIcon server={server} />
                         {mentionCount > 0 && <span className="rail-badge">{mentionCount > 99 ? "99+" : mentionCount}</span>}
@@ -47,12 +49,12 @@ export default function ServerRail() {
                 );
             })}
 
-            <button className="rail-item rail-action" onClick={() => setCreating(true)} data-tooltip="Créer un serveur">
-                <span className="rail-action-icon">+</span>
+            <button className="rail-item rail-action" onClick={() => setCreating(true)} data-tooltip="Créer un serveur" aria-label="Créer un serveur">
+                <span className="rail-action-icon"><Plus size={24} /></span>
             </button>
 
-            <NavLink to="/app/explore" className={({ isActive }) => `${railClass({ isActive })} rail-action`} data-tooltip="Explorer les serveurs publics">
-                <span className="rail-action-icon">🧭</span>
+            <NavLink to="/app/explore" className={({ isActive }) => `${railClass({ isActive })} rail-action`} data-tooltip="Explorer les serveurs publics" aria-label="Explorer les serveurs publics">
+                <span className="rail-action-icon"><Compass size={24} /></span>
             </NavLink>
 
             {creating && <CreateServerModal onClose={() => setCreating(false)} />}

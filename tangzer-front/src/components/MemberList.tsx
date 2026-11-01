@@ -1,3 +1,4 @@
+import { Crown } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -68,7 +69,7 @@ export default function MemberList({ server }: { server: Server }) {
                                     <span className="member-custom-status">{customStatusOf(member.user.id)}</span>
                                 )}
                             </span>
-                            {member.role === "OWNER" && <span className="member-crown" title="Propriétaire">👑</span>}
+                            {member.role === "OWNER" && <Crown className="member-crown" size={16} role="img" aria-label="Propriétaire" />}
                         </button>
                     ))}
                 </section>

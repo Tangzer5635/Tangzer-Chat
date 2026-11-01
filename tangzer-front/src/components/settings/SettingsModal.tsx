@@ -1,4 +1,5 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { Bell, Lock, Mic, Palette, User, X, type LucideIcon } from "lucide-react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { changePassword } from "../../api/users";
@@ -7,15 +8,18 @@ import { useToasts } from "../../context/toasts";
 import AppearanceSettings from "./AppearanceSettings";
 import { NotificationSettings, VoiceSettings } from "./DeviceSettings";
 import ProfileSettings from "./ProfileSettings";
+import Alert from "../ui/Alert";
+import Tabs from "../ui/Tabs";
+import { useModalDialog } from "../ui/useModalDialog";
 
 type Tab = "profile" | "appearance" | "notifications" | "voice" | "account";
 
-const TABS: { id: Tab; label: string; title: string }[] = [
-    { id: "profile", label: "👤 Mon profil", title: "Mon profil" },
-    { id: "appearance", label: "🎨 Apparence", title: "Apparence" },
-    { id: "notifications", label: "🔔 Notifications", title: "Notifications" },
-    { id: "voice", label: "🎙️ Voix et vidéo", title: "Voix et vidéo" },
-    { id: "account", label: "🔐 Mon compte", title: "Mon compte" },
+const TABS: { id: Tab; label: string; icon: LucideIcon }[] = [
+    { id: "profile", label: "Mon profil", icon: User },
+    { id: "appearance", label: "Apparence", icon: Palette },
+    { id: "notifications", label: "Notifications", icon: Bell },
+    { id: "voice", label: "Voix et vidéo", icon: Mic },
+    { id: "account", label: "Mon compte", icon: Lock },
 ];
 
 /** Mon compte : nom d'utilisateur, mot de passe, déconnexion. */
@@ -48,9 +52,9 @@ function AccountSettings({ onClose }: { onClose: () => void }) {
 
     return (
         <div className="form">
-            <label>Nom d'utilisateur</label>
-            <input value={`@${user?.username ?? ""}`} readOnly />
-            <p className="form-hint">Le nom d'utilisateur sert à se connecter et ne change pas. Le nom affiché se modifie dans « Mon profil ».</p>
+            <label htmlFor="account-username">Nom d'utilisateur</label>
+            <input id="account-username" value={`@${user?.username ?? ""}`} readOnly aria-describedby="account-username-hint" />
+            <p className="form-hint" id="account-username-hint">Le nom d'utilisateur sert à se connecter et ne change pas. Le nom affiché se modifie dans « Mon profil ».</p>
 
             <form className="form" onSubmit={submit}>
                 <label htmlFor="current-password">Mot de passe actuel</label>
@@ -59,7 +63,7 @@ function AccountSettings({ onClose }: { onClose: () => void }) {
                 <input id="new-password" type="password" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} />
                 <label htmlFor="confirm-password">Confirmer le nouveau mot de passe</label>
                 <input id="confirm-password" type="password" autoComplete="new-password" value={confirmation} onChange={(e) => setConfirmation(e.target.value)} />
-                {error && <p className="form-error">{error}</p>}
+                {error && <Alert tone="error">{error}</Alert>}
                 <div className="settings-actions">
                     <button type="submit" className="button-primary" disabled={!current || !next}>Changer le mot de passe</button>
                 </div>
@@ -81,15 +85,10 @@ function AccountSettings({ onClose }: { onClose: () => void }) {
     );
 }
 
-/** Paramètres plein écran, façon Discord. Échap pour fermer. */
+/** Paramètres en plein écran : onglets à gauche, contenu à droite. Échap pour fermer. */
 export default function SettingsModal({ onClose }: { onClose: () => void }) {
     const [tab, setTab] = useState<Tab>("profile");
-
-    useEffect(() => {
-        const onKeyDown = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-        window.addEventListener("keydown", onKeyDown);
-        return () => window.removeEventListener("keydown", onKeyDown);
-    }, [onClose]);
+    const ref = useModalDialog();
 
     const panes: Record<Tab, ReactNode> = {
         profile: <ProfileSettings />,
@@ -100,26 +99,32 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
     };
 
     return (
-        <div className="settings" role="dialog" aria-modal="true" aria-label="Paramètres">
-            <nav className="settings-nav">
-                <h3>Paramètres</h3>
-                {TABS.map((item) => (
-                    <button
-                        key={item.id}
-                        className={tab === item.id ? "settings-tab active" : "settings-tab"}
-                        onClick={() => setTab(item.id)}
-                    >
-                        {item.label}
-                    </button>
-                ))}
-            </nav>
-            <main className="settings-content">
-                <h2>{TABS.find((item) => item.id === tab)?.title}</h2>
-                {panes[tab]}
-            </main>
-            <button className="settings-close" onClick={onClose} aria-label="Fermer les paramètres">
-                ✕<span>ÉCHAP</span>
+        <dialog
+            ref={ref}
+            className="settings"
+            aria-label="Paramètres"
+            tabIndex={-1}
+            onCancel={(e) => {
+                e.preventDefault();
+                onClose();
+            }}
+        >
+            <Tabs
+                label="Paramètres"
+                orientation="vertical"
+                tabs={TABS.map(({ id, label, icon: Icon }) => ({ id, label: <><Icon size={18} />{label}</> }))}
+                value={tab}
+                onChange={setTab}
+                className="settings-tabs"
+            >
+                <div className="settings-content">
+                    <h2>{TABS.find((item) => item.id === tab)?.label}</h2>
+                    {panes[tab]}
+                </div>
+            </Tabs>
+            <button type="button" className="icon-button settings-close" onClick={onClose} aria-label="Fermer les paramètres">
+                <X size={22} />
             </button>
-        </div>
+        </dialog>
     );
 }

@@ -1,3 +1,4 @@
+import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 
@@ -29,7 +30,7 @@ export default function AppShell() {
         pushToast(error.message, { tone: "error" });
     });
 
-    // Sur téléphone : la liste des serveurs et des salons s'ouvre en tiroir (☰),
+    // Sur téléphone : la liste des serveurs et des salons s'ouvre en tiroir,
     // et se referme dès qu'on choisit un lien.
     const [navOpen, setNavOpen] = useState(false);
 
@@ -42,8 +43,13 @@ export default function AppShell() {
                 }
             }}
         >
-            <button className="mobile-nav-button" onClick={() => setNavOpen((open) => !open)} aria-label="Menu">
-                {navOpen ? "✕" : "☰"}
+            <button
+                className="mobile-nav-button"
+                onClick={() => setNavOpen((open) => !open)}
+                aria-label={navOpen ? "Fermer la navigation" : "Ouvrir la navigation"}
+                aria-expanded={navOpen}
+            >
+                {navOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
             {navOpen && <div className="mobile-nav-backdrop" onClick={() => setNavOpen(false)} />}
             <ConnectionBanner />

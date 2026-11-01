@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { ChevronDown, Hash, HeadphoneOff, LogOut, MicOff, Plus, Settings, UserPlus, Video, Volume2 } from "lucide-react";
+import { useId, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 
 import { leaveServer } from "../api/servers";
@@ -13,6 +14,7 @@ import CallPanel from "./calls/CallPanel";
 import ChannelModal from "./modals/ChannelModal";
 import InviteModal from "./modals/InviteModal";
 import ServerSettingsModal from "./modals/ServerSettingsModal";
+import { useDismiss } from "./ui/useDismiss";
 import UserPanel from "./UserPanel";
 
 type OpenModal =
@@ -33,24 +35,14 @@ export default function ChannelSidebar({ server }: { server: Server }) {
     const [menuOpen, setMenuOpen] = useState(false);
     const [modal, setModal] = useState<OpenModal>(null);
     const menuRef = useRef<HTMLDivElement>(null);
+    const triggerRef = useRef<HTMLButtonElement>(null);
+    const menuId = useId();
 
     const canManage = canManageServer(server.myRole);
     const textChannels = server.channels.filter((c) => c.type === "TEXT");
     const voiceChannels = server.channels.filter((c) => c.type === "VOICE");
 
-    // Ferme le menu quand on clique ailleurs.
-    useEffect(() => {
-        if (!menuOpen) {
-            return;
-        }
-        const onClick = (e: MouseEvent) => {
-            if (!menuRef.current?.contains(e.target as Node)) {
-                setMenuOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", onClick);
-        return () => document.removeEventListener("mousedown", onClick);
-    }, [menuOpen]);
+    useDismiss(menuOpen, () => setMenuOpen(false), menuRef, triggerRef);
 
     const open = (next: OpenModal) => {
         setMenuOpen(false);
@@ -71,26 +63,45 @@ export default function ChannelSidebar({ server }: { server: Server }) {
         }
     };
 
+    const editButton = (channel: Channel) => canManage && (
+        <button
+            type="button"
+            className="channel-edit icon-button small"
+            aria-label={`Modifier le salon ${channel.name}`}
+            title="Modifier le salon"
+            onClick={() => open({ kind: "editChannel", channel })}
+        >
+            <Settings size={16} />
+        </button>
+    );
+
     return (
         <aside className="sidebar">
-            <div className="sidebar-header-wrapper" ref={menuRef}>
-                <button className="sidebar-header" onClick={() => setMenuOpen((v) => !v)} aria-expanded={menuOpen}>
+            <div className="sidebar-header-wrapper">
+                <button
+                    ref={triggerRef}
+                    className="sidebar-header"
+                    onClick={() => setMenuOpen((v) => !v)}
+                    aria-expanded={menuOpen}
+                    aria-controls={menuId}
+                >
                     <span className="sidebar-title">{server.name}</span>
-                    <span className="sidebar-chevron">{menuOpen ? "✕" : "▾"}</span>
+                    <ChevronDown className={menuOpen ? "sidebar-chevron open" : "sidebar-chevron"} size={18} />
+                    <span className="sr-only">: actions du serveur</span>
                 </button>
 
                 {menuOpen && (
-                    <div className="dropdown" role="menu">
+                    <div className="dropdown" id={menuId} ref={menuRef}>
                         <button className="dropdown-item accent" onClick={() => open({ kind: "invite" })}>
-                            Inviter des gens <span>👋</span>
+                            <UserPlus size={18} /> Inviter des personnes
                         </button>
                         {canManage && (
                             <>
                                 <button className="dropdown-item" onClick={() => open({ kind: "settings" })}>
-                                    Paramètres du serveur <span>⚙️</span>
+                                    <Settings size={18} /> Paramètres du serveur
                                 </button>
                                 <button className="dropdown-item" onClick={() => open({ kind: "createChannel" })}>
-                                    Créer un salon <span>➕</span>
+                                    <Plus size={18} /> Créer un salon
                                 </button>
                             </>
                         )}
@@ -98,7 +109,7 @@ export default function ChannelSidebar({ server }: { server: Server }) {
                             <>
                                 <div className="dropdown-separator" />
                                 <button className="dropdown-item danger" onClick={handleLeave}>
-                                    Quitter le serveur <span>🚪</span>
+                                    <LogOut size={18} /> Quitter le serveur
                                 </button>
                             </>
                         )}
@@ -106,96 +117,95 @@ export default function ChannelSidebar({ server }: { server: Server }) {
                 )}
             </div>
 
-            <div className="sidebar-scroll">
+            <nav className="sidebar-scroll" aria-label={`Salons de ${server.name}`}>
                 {server.description && <p className="sidebar-description">{server.description}</p>}
 
                 <div className="channel-category">
-                    <span>Salons textuels</span>
+                    <h2>Salons textuels</h2>
                     {canManage && (
-                        <button className="icon-button small" title="Créer un salon" onClick={() => open({ kind: "createChannel" })}>
-                            +
+                        <button className="icon-button small" aria-label="Créer un salon" title="Créer un salon" onClick={() => open({ kind: "createChannel" })}>
+                            <Plus size={16} />
                         </button>
                     )}
                 </div>
 
-                {textChannels.map((channel) => (
-                    <NavLink
-                        key={channel.id}
-                        to={`/app/servers/${server.id}/channels/${channel.id}`}
-                        className={({ isActive }) => [
-                            "channel-item",
-                            isActive ? "active" : "",
-                            counts[channel.id] ? "unread" : "",
-                        ].join(" ")}
-                    >
-                        <span className="channel-hash">#</span>
-                        <span className="channel-name">{channel.name}</span>
-                        {mentions[channel.id] > 0 && <span className="badge">{mentions[channel.id]}</span>}
-                        {canManage && (
-                            <button
-                                className="channel-edit"
-                                title="Modifier le salon"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    open({ kind: "editChannel", channel });
-                                }}
+                <ul className="channel-list">
+                    {textChannels.map((channel) => (
+                        <li key={channel.id} className="channel-row">
+                            <NavLink
+                                to={`/app/servers/${server.id}/channels/${channel.id}`}
+                                className={({ isActive }) => [
+                                    "channel-item",
+                                    isActive ? "active" : "",
+                                    counts[channel.id] ? "unread" : "",
+                                ].join(" ")}
                             >
-                                ⚙
-                            </button>
-                        )}
-                    </NavLink>
-                ))}
+                                <Hash className="channel-hash" size={18} />
+                                <span className="channel-name">{channel.name}</span>
+                                {counts[channel.id] > 0 && !mentions[channel.id] && <span className="sr-only">(non lu)</span>}
+                                {mentions[channel.id] > 0 && (
+                                    <span className="badge">
+                                        {mentions[channel.id]}
+                                        <span className="sr-only"> mention{mentions[channel.id] > 1 ? "s" : ""}</span>
+                                    </span>
+                                )}
+                            </NavLink>
+                            {editButton(channel)}
+                        </li>
+                    ))}
+                </ul>
 
                 {voiceChannels.length > 0 && (
                     <div className="channel-category">
-                        <span>Salons vocaux</span>
+                        <h2>Salons vocaux</h2>
                         {canManage && (
-                            <button className="icon-button small" title="Créer un salon" onClick={() => open({ kind: "createChannel" })}>
-                                +
+                            <button className="icon-button small" aria-label="Créer un salon" title="Créer un salon" onClick={() => open({ kind: "createChannel" })}>
+                                <Plus size={16} />
                             </button>
                         )}
                     </div>
                 )}
 
-                {voiceChannels.map((channel) => (
-                    <div key={channel.id}>
-                        <NavLink
-                            to={`/app/servers/${server.id}/channels/${channel.id}`}
-                            className={({ isActive }) => (isActive ? "channel-item active" : "channel-item")}
-                            onClick={() => void join(channel.id)}
-                            title="Rejoindre le salon vocal"
-                        >
-                            <span className="channel-hash">🔊</span>
-                            <span className="channel-name">{channel.name}</span>
-                            {canManage && (
-                                <button
-                                    className="channel-edit"
-                                    title="Modifier le salon"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        open({ kind: "editChannel", channel });
-                                    }}
+                <ul className="channel-list">
+                    {voiceChannels.map((channel) => {
+                        const participants = calls[channel.id]?.participants ?? [];
+                        return (
+                            <li key={channel.id} className="channel-row">
+                                <NavLink
+                                    to={`/app/servers/${server.id}/channels/${channel.id}`}
+                                    className={({ isActive }) => (isActive ? "channel-item active" : "channel-item")}
+                                    onClick={() => void join(channel.id)}
                                 >
-                                    ⚙
-                                </button>
-                            )}
-                        </NavLink>
-                        {(calls[channel.id]?.participants ?? []).map((participant) => (
-                            <div
-                                key={participant.user.id}
-                                className={speaking.has(participant.user.id) && !participant.muted ? "voice-member speaking" : "voice-member"}
-                            >
-                                <Avatar user={participant.user} size={24} />
-                                <span className="voice-member-name">{participant.user.displayName}</span>
-                                {participant.screen && <span className="live-badge">EN DIRECT</span>}
-                                {participant.video && <small>📷</small>}
-                                {participant.deafened ? <small>🙉</small> : participant.muted ? <small>🔇</small> : null}
-                            </div>
-                        ))}
-                    </div>
-                ))}
-            </div>
+                                    <Volume2 className="channel-hash" size={18} />
+                                    <span className="channel-name">{channel.name}</span>
+                                    <span className="sr-only">
+                                        (salon vocal{participants.length > 0 ? `, ${participants.length} personne${participants.length > 1 ? "s" : ""}` : ""})
+                                    </span>
+                                </NavLink>
+                                {editButton(channel)}
+                                {participants.length > 0 && (
+                                    <ul className="voice-members">
+                                        {participants.map((participant) => (
+                                            <li
+                                                key={participant.user.id}
+                                                className={speaking.has(participant.user.id) && !participant.muted ? "voice-member speaking" : "voice-member"}
+                                            >
+                                                <Avatar user={participant.user} size={24} />
+                                                <span className="voice-member-name">{participant.user.displayName}</span>
+                                                {participant.screen && <span className="live-badge">En direct</span>}
+                                                {participant.video && <Video size={14} role="img" aria-label="Caméra allumée" />}
+                                                {participant.deafened
+                                                    ? <HeadphoneOff size={14} role="img" aria-label="Son coupé" />
+                                                    : participant.muted ? <MicOff size={14} role="img" aria-label="Micro coupé" /> : null}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </li>
+                        );
+                    })}
+                </ul>
+            </nav>
 
             <CallPanel />
             <UserPanel />

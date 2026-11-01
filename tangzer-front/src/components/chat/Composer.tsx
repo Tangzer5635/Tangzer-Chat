@@ -1,3 +1,4 @@
+import { CircleAlert, ImagePlus, X } from "lucide-react";
 import { useRef, useState, type ClipboardEvent, type KeyboardEvent } from "react";
 
 import { ACCEPTED_IMAGE_TYPES } from "../../lib/attachments";
@@ -80,8 +81,10 @@ export default function Composer(props: ComposerProps) {
                             {!upload.attachment && !upload.error && (
                                 <div className="upload-progress"><span style={{ width: `${upload.progress}%` }} /></div>
                             )}
-                            {upload.error && <span className="upload-error">⚠️</span>}
-                            <button className="upload-remove" onClick={() => props.onRemoveUpload(upload.key)} aria-label="Retirer">✕</button>
+                            {upload.error && <CircleAlert className="upload-error" size={28} role="img" aria-label={`Échec : ${upload.error}`} />}
+                            <button className="upload-remove" onClick={() => props.onRemoveUpload(upload.key)} aria-label={`Retirer ${upload.file.name}`}>
+                                <X size={14} />
+                            </button>
                             <span className="upload-name">{upload.file.name}</span>
                         </div>
                     ))}
@@ -90,7 +93,7 @@ export default function Composer(props: ComposerProps) {
             {replyTo && (
                 <div className="composer-reply">
                     <span>Réponse à <strong>{replyTo.author.displayName}</strong></span>
-                    <button className="icon-button small" onClick={onCancelReply} aria-label="Annuler la réponse">✕</button>
+                    <button className="icon-button small" onClick={onCancelReply} aria-label="Annuler la réponse"><X size={16} /></button>
                 </div>
             )}
             <div className={replyTo ? "composer-box with-reply" : "composer-box"}>
@@ -100,7 +103,7 @@ export default function Composer(props: ComposerProps) {
                     title="Ajouter des images"
                     aria-label="Ajouter des images"
                 >
-                    +
+                    <ImagePlus size={20} />
                 </button>
                 <input
                     ref={fileInput}
@@ -119,6 +122,7 @@ export default function Composer(props: ComposerProps) {
                     onKeyDown={onKeyDown}
                     onPaste={onPaste}
                     placeholder={uploading ? "Envoi des images…" : placeholder}
+                    aria-label={placeholder}
                     rows={1}
                     maxLength={MAX_LENGTH}
                     autoFocus

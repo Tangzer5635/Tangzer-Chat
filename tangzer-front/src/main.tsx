@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client'
 import '@fontsource-variable/source-sans-3'
 import './styles/tokens.css'
 import './styles/base.css'
+import './styles/components.css'
 
 import App from './App.tsx'
 import { applyStoredAppearance } from './lib/theme'

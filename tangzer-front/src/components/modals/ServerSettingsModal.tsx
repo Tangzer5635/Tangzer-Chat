@@ -6,11 +6,13 @@ import { deleteServer, updateServer } from "../../api/servers";
 import { useServers } from "../../context/servers";
 import { useToasts } from "../../context/toasts";
 import { validateImageFile } from "../../lib/attachments";
-import { SERVER_COLORS, SERVER_ICONS } from "../../lib/choices";
 import { cropToSquare } from "../../lib/image";
 import type { Server } from "../../types/api";
 import Modal from "../Modal";
 import ServerIcon from "../ServerIcon";
+import Alert from "../ui/Alert";
+import Field from "../ui/Field";
+import ServerLookPicker from "./ServerLookPicker";
 
 /** Paramètres du serveur (propriétaire et admins). */
 export default function ServerSettingsModal({ server, onClose }: { server: Server; onClose: () => void }) {
@@ -89,8 +91,8 @@ export default function ServerSettingsModal({ server, onClose }: { server: Serve
         <Modal title="Paramètres du serveur" onClose={onClose}>
             <form className="form" onSubmit={handleSave}>
                 <div className="server-preview">
-                    <ServerIcon server={{ name: name || server.name, icon, iconUrl, color }} size={72} />
-                    <span>{name || server.name}</span>
+                    <ServerIcon server={{ name: name || server.name, icon, iconUrl, color }} size={64} />
+                    <span aria-hidden="true">{name || server.name}</span>
                     <div className="settings-row">
                         <button type="button" className="button-secondary" onClick={() => imageInput.current?.click()}>
                             {iconUrl ? "Changer l'image" : "Utiliser une image"}
@@ -109,53 +111,17 @@ export default function ServerSettingsModal({ server, onClose }: { server: Serve
                     />
                 </div>
 
-                <label htmlFor="settings-name">Nom du serveur</label>
-                <input id="settings-name" value={name} onChange={(e) => setName(e.target.value)} maxLength={50} />
+                <Field label="Nom du serveur" hint="De 2 à 50 caractères.">
+                    {(control) => <input {...control} value={name} onChange={(e) => setName(e.target.value)} maxLength={50} required />}
+                </Field>
 
-                <label>Icône</label>
-                <div className="emoji-grid">
-                    <button
-                        type="button"
-                        className={icon === null ? "emoji-choice active" : "emoji-choice"}
-                        onClick={() => setIcon(null)}
-                        title="Initiales"
-                    >
-                        Aa
-                    </button>
-                    {SERVER_ICONS.map((emoji) => (
-                        <button
-                            type="button"
-                            key={emoji}
-                            className={icon === emoji ? "emoji-choice active" : "emoji-choice"}
-                            onClick={() => setIcon(emoji)}
-                        >
-                            {emoji}
-                        </button>
-                    ))}
-                </div>
+                <ServerLookPicker icon={icon} onIconChange={setIcon} color={color} onColorChange={setColor} />
 
-                <label>Couleur</label>
-                <div className="color-grid">
-                    {SERVER_COLORS.map((c) => (
-                        <button
-                            type="button"
-                            key={c}
-                            className={color === c ? "color-choice active" : "color-choice"}
-                            style={{ background: c }}
-                            onClick={() => setColor(c)}
-                            aria-label={`Couleur ${c}`}
-                        />
-                    ))}
-                </div>
-
-                <label htmlFor="settings-description">Description</label>
-                <textarea
-                    id="settings-description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    maxLength={300}
-                    rows={2}
-                />
+                <Field label="Description">
+                    {(control) => (
+                        <textarea {...control} value={description} onChange={(e) => setDescription(e.target.value)} maxLength={300} rows={2} />
+                    )}
+                </Field>
 
                 <label className="switch">
                     <input type="checkbox" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} />
@@ -165,7 +131,7 @@ export default function ServerSettingsModal({ server, onClose }: { server: Serve
                     </span>
                 </label>
 
-                {error && <p className="form-error">{error}</p>}
+                {error && <Alert tone="error">{error}</Alert>}
 
                 <div className="modal-actions">
                     {canDelete && (

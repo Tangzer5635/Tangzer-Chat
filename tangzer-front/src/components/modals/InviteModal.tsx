@@ -4,7 +4,10 @@ import { createInvite } from "../../api/servers";
 import { INVITE_DURATIONS, INVITE_MAX_USES } from "../../lib/choices";
 import { describeExpiry, inviteUrl } from "../../lib/invites";
 import type { Invite, Server } from "../../types/api";
+import { Check, Copy } from "lucide-react";
+
 import Modal from "../Modal";
+import Alert from "../ui/Alert";
 
 /** Génère un lien d'invitation à partager (7 jours, illimité par défaut). */
 export default function InviteModal({ server, onClose }: { server: Server; onClose: () => void }) {
@@ -43,22 +46,23 @@ export default function InviteModal({ server, onClose }: { server: Server; onClo
     };
 
     return (
-        <Modal title={`Inviter des amis sur ${server.name}`} onClose={onClose}>
+        <Modal title={`Inviter des personnes sur ${server.name}`} onClose={onClose}>
             <div className="form">
-                <label htmlFor="invite-link">Envoie ce lien à tes amis</label>
+                <label htmlFor="invite-link">Lien d'invitation à partager</label>
                 <div className="copy-field">
-                    <input id="invite-link" value={link} readOnly onFocus={(e) => e.target.select()} />
+                    <input id="invite-link" value={link} readOnly onFocus={(e) => e.target.select()} aria-describedby="invite-validity" />
                     <button className={copied ? "button-success" : "button-primary"} onClick={copy} disabled={!invite}>
-                        {copied ? "Copié !" : "Copier"}
+                        {copied ? <Check size={18} /> : <Copy size={18} />}
+                        {copied ? "Copié" : "Copier"}
                     </button>
                 </div>
                 {invite && (
-                    <p className="form-hint">
-                        Ton lien {describeExpiry(invite.expiresAt)}
+                    <p className="form-hint" id="invite-validity" aria-live="polite">
+                        Ce lien {describeExpiry(invite.expiresAt)}
                         {invite.maxUses ? ` et servira ${invite.maxUses} fois au maximum.` : "."}
                     </p>
                 )}
-                {error && <p className="form-error">{error}</p>}
+                {error && <Alert tone="error">{error}</Alert>}
 
                 <div className="form-row">
                     <div>

@@ -8,6 +8,7 @@ import { useToasts } from "../../context/toasts";
 import type { User } from "../../types/api";
 import Avatar from "../Avatar";
 import Modal from "../Modal";
+import Field from "../ui/Field";
 
 /** Chercher quelqu'un et lui écrire en privé. */
 export default function NewDmModal({ onClose }: { onClose: () => void }) {
@@ -45,13 +46,12 @@ export default function NewDmModal({ onClose }: { onClose: () => void }) {
     return (
         <Modal title="Nouveau message" subtitle="À qui veux-tu écrire ?" onClose={onClose}>
             <div className="form">
-                <input
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Pseudo ou nom affiché"
-                    autoFocus
-                />
-                <div className="user-results">
+                <Field label="Rechercher une personne" hint="Par son nom d'utilisateur ou son nom affiché.">
+                    {(control) => (
+                        <input {...control} type="search" value={query} onChange={(e) => setQuery(e.target.value)} autoComplete="off" />
+                    )}
+                </Field>
+                <div className="user-results" aria-live="polite">
                     {results.length === 0 && <p className="form-hint">Personne ne correspond à « {query} ».</p>}
                     {results.map((result) => (
                         <button key={result.id} className="user-result" onClick={() => start(result)}>

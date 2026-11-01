@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 
+import Alert from "../components/ui/Alert";
+import Field from "../components/ui/Field";
 import { useAuth } from "../context/auth";
 import AuthLayout from "../layout/AuthLayout";
 import { APP_NAME } from "../lib/brand";
@@ -47,51 +49,63 @@ export default function Register() {
             <h2>Créer un compte</h2>
             <p className="login-subtitle">Rejoins la communauté {APP_NAME}.</p>
 
-            <form onSubmit={handleSubmit}>
-                <label htmlFor="register-username">Nom d'utilisateur</label>
-                <input
-                    id="register-username"
-                    type="text"
-                    autoComplete="username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="3 à 20 caractères : lettres, chiffres, . ou _"
-                    autoFocus
-                />
+            <form className="form" onSubmit={handleSubmit} noValidate>
+                <Field id="register-username" label="Nom d'utilisateur" hint="De 3 à 20 caractères : lettres, chiffres, point ou tiret bas. Il sert à te connecter.">
+                    {(control) => (
+                        <input
+                            {...control}
+                            type="text"
+                            autoComplete="username"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            autoFocus
+                            required
+                        />
+                    )}
+                </Field>
 
-                <label htmlFor="register-display-name">Nom affiché</label>
-                <input
-                    id="register-display-name"
-                    type="text"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="Comment les autres te verront (facultatif)"
-                    maxLength={32}
-                />
+                <Field id="register-display-name" label="Nom affiché (facultatif)" hint="Le nom que les autres verront.">
+                    {(control) => (
+                        <input
+                            {...control}
+                            type="text"
+                            value={displayName}
+                            onChange={(e) => setDisplayName(e.target.value)}
+                            maxLength={32}
+                        />
+                    )}
+                </Field>
 
-                <label htmlFor="register-password">Mot de passe</label>
-                <input
-                    id="register-password"
-                    type="password"
-                    autoComplete="new-password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="6 caractères minimum"
-                />
+                <Field id="register-password" label="Mot de passe" hint="6 caractères minimum.">
+                    {(control) => (
+                        <input
+                            {...control}
+                            type="password"
+                            autoComplete="new-password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                        />
+                    )}
+                </Field>
 
-                <label htmlFor="register-confirmation">Confirmer le mot de passe</label>
-                <input
-                    id="register-confirmation"
-                    type="password"
-                    autoComplete="new-password"
-                    value={confirmation}
-                    onChange={(e) => setConfirmation(e.target.value)}
-                />
+                <Field id="register-confirmation" label="Confirmer le mot de passe">
+                    {(control) => (
+                        <input
+                            {...control}
+                            type="password"
+                            autoComplete="new-password"
+                            value={confirmation}
+                            onChange={(e) => setConfirmation(e.target.value)}
+                            required
+                        />
+                    )}
+                </Field>
 
-                {error && <p className="login-error">{error}</p>}
+                {error && <Alert tone="error">{error}</Alert>}
 
-                <button type="submit" disabled={submitting}>
-                    {submitting ? "Création…" : "Continuer"}
+                <button type="submit" className="button-primary big login-submit" disabled={submitting}>
+                    {submitting ? "Création…" : "Créer mon compte"}
                 </button>
             </form>
 

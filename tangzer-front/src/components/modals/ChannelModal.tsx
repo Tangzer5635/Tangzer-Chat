@@ -4,7 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { createChannel, deleteChannel, updateChannel } from "../../api/servers";
 import { useServers } from "../../context/servers";
 import type { Channel } from "../../types/api";
+import { Hash, Volume2 } from "lucide-react";
+
 import Modal from "../Modal";
+import Alert from "../ui/Alert";
 
 interface ChannelModalProps {
     serverId: number;
@@ -68,27 +71,28 @@ export default function ChannelModal({ serverId, channel, onClose }: ChannelModa
         >
             <form className="form" onSubmit={handleSubmit}>
                 {!channel && (
-                    <>
-                        <label>Type de salon</label>
+                    <fieldset className="choice-group">
+                        <legend className="form-label">Type de salon</legend>
                         <div className="channel-types">
-                            <button type="button" className={type === "TEXT" ? "channel-type active" : "channel-type"} onClick={() => setType("TEXT")}>
-                                <span>#</span>
+                            <button type="button" className="channel-type" aria-pressed={type === "TEXT"} onClick={() => setType("TEXT")}>
+                                <Hash size={22} />
                                 <strong>Textuel</strong>
                                 <small>Messages, images, réactions…</small>
                             </button>
-                            <button type="button" className={type === "VOICE" ? "channel-type active" : "channel-type"} onClick={() => setType("VOICE")}>
-                                <span>🔊</span>
+                            <button type="button" className="channel-type" aria-pressed={type === "VOICE"} onClick={() => setType("VOICE")}>
+                                <Volume2 size={22} />
                                 <strong>Vocal</strong>
                                 <small>Discuter de vive voix</small>
                             </button>
                         </div>
-                    </>
+                    </fieldset>
                 )}
                 <label htmlFor="channel-name">Nom du salon</label>
                 <div className="input-prefixed">
-                    <span>#</span>
+                    <span aria-hidden="true">#</span>
                     <input
                         id="channel-name"
+                        aria-describedby={preview && preview !== name ? "channel-name-preview" : undefined}
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         maxLength={32}
@@ -96,7 +100,7 @@ export default function ChannelModal({ serverId, channel, onClose }: ChannelModa
                         autoFocus
                     />
                 </div>
-                {preview && preview !== name && <p className="form-hint">Sera enregistré sous #{preview}</p>}
+                {preview && preview !== name && <p className="form-hint" id="channel-name-preview">Sera enregistré sous #{preview}</p>}
 
                 <label htmlFor="channel-topic">Sujet (facultatif)</label>
                 <input
@@ -107,7 +111,7 @@ export default function ChannelModal({ serverId, channel, onClose }: ChannelModa
                     placeholder="De quoi parle ce salon ?"
                 />
 
-                {error && <p className="form-error">{error}</p>}
+                {error && <Alert tone="error">{error}</Alert>}
 
                 <div className="modal-actions">
                     {channel && (

@@ -1,7 +1,10 @@
+import { Volume2 } from "lucide-react";
+
 import { useCalls } from "../../context/calls";
 import type { Channel } from "../../types/api";
 import CallControls from "./CallControls";
 import CallTiles from "./CallTiles";
+import Alert from "../ui/Alert";
 
 /** Page d'un salon vocal : qui est là, rejoindre, et les contrôles. */
 export default function VoiceRoom({ channel }: { channel: Channel }) {
@@ -12,7 +15,7 @@ export default function VoiceRoom({ channel }: { channel: Channel }) {
     return (
         <section className="chat voice-room">
             <header className="chat-header">
-                <span className="chat-header-hash">🔊</span>
+                <Volume2 className="chat-header-hash" size={22} />
                 <h1>{channel.name}</h1>
                 {channel.topic && <span className="chat-header-topic">{channel.topic}</span>}
             </header>
@@ -22,7 +25,7 @@ export default function VoiceRoom({ channel }: { channel: Channel }) {
                     <CallTiles participants={participants} />
                 ) : (
                     <div className="voice-empty">
-                        <div className="voice-empty-icon">🔊</div>
+                        <Volume2 className="voice-empty-icon" size={48} />
                         <h2>Personne pour l'instant</h2>
                         <p>Rejoins le salon : les autres membres te verront arriver.</p>
                     </div>
@@ -38,7 +41,7 @@ export default function VoiceRoom({ channel }: { channel: Channel }) {
                     )}
                 </div>
                 {!supported && (
-                    <p className="form-error">Le micro n'est disponible qu'en HTTPS : ouvre l'application avec https://…</p>
+                    <Alert tone="warning">Le micro n'est disponible qu'en HTTPS : ouvre l'application avec https://…</Alert>
                 )}
             </div>
         </section>

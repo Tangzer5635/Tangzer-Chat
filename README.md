@@ -169,6 +169,11 @@ y est écrite une fois sous la forme `light-dark(clair, sombre)`.
 Le test `tokens.test.ts` vérifie que chaque association texte/fond atteint le niveau
 WCAG AA dans les deux modes : une couleur trop pâle fait échouer la CI.
 
+- Composants communs dans `tangzer-front/src/components/ui/` et `styles/components.css` :
+  fenêtres modales natives (`<dialog>` : focus enfermé, Échap, retour du focus), champs
+  avec libellé, aide et erreur reliés (`Field`), onglets au clavier (`Tabs`), alertes
+  annoncées (`Alert`), menus qui se ferment avec Échap (`useDismiss`). Icônes Lucide
+  (licence ISC) plutôt que des emojis.
 - Police : Source Sans 3 (licence OFL), servie avec l'application.
 - Charte : prune `#6b2f73` et ocre `#9a5500`, angles droits, filets plutôt qu'ombres.
 - Le style s'inspire des principes des systèmes de design publics (lisibilité, sobriété,

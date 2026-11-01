@@ -1,3 +1,4 @@
+import { Users, Volume2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { useCalls } from "../../context/calls";
@@ -28,8 +29,13 @@ export default function CallPanel() {
     return (
         <div className="call-panel">
             <div className="call-panel-info">
-                <strong className="call-panel-status">{connecting ? "Connexion…" : "🔊 Connecté au vocal"}</strong>
-                <Link to={link} className="call-panel-where">{where} · {count} 👤</Link>
+                <strong className="call-panel-status" role="status">
+                    <Volume2 size={16} /> {connecting ? "Connexion…" : "Connecté au vocal"}
+                </strong>
+                <Link to={link} className="call-panel-where">
+                    {where} · <Users size={14} /> {count}
+                    <span className="sr-only"> participant{count > 1 ? "s" : ""}</span>
+                </Link>
             </div>
             <CallControls />
         </div>

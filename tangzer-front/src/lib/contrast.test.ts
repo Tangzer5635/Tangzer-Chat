@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { colorFor } from "./avatar";
-import { SERVER_COLORS } from "./choices";
+import { colorName, SERVER_COLORS } from "./choices";
 import { AA_TEXT, contrastRatio, isHexColor, readableTextOn } from "./contrast";
 
 describe("contrastRatio", () => {
@@ -41,5 +41,15 @@ describe("couleurs des avatars et des serveurs", () => {
         for (const color of colors) {
             expect(contrastRatio("#ffffff", color), color).toBeGreaterThanOrEqual(AA_TEXT);
         }
+    });
+});
+
+describe("colorName", () => {
+    it("nomme chaque couleur proposée, et retombe sur le code sinon", () => {
+        for (const color of SERVER_COLORS) {
+            expect(colorName(color)).not.toContain("#");
+        }
+        expect(colorName("#6B2F73")).toBe("Prune");
+        expect(colorName("#123456")).toBe("Couleur #123456");
     });
 });

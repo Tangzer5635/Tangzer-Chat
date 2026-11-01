@@ -1,3 +1,4 @@
+import { Phone } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
@@ -38,7 +39,7 @@ function DmHome() {
 
     return (
         <section className="chat dm-home">
-            <header className="chat-header"><h1>👋 Accueil</h1></header>
+            <header className="chat-header"><h1>Accueil</h1></header>
             <div className="dm-home-body">
                 <h2>Tes messages privés</h2>
                 <p>Écris à quelqu'un en privé : réponses, réactions, mise en forme… tout marche comme dans les salons.</p>
@@ -119,10 +120,11 @@ export default function DirectMessagesPage() {
                                 <button
                                     className="icon-button"
                                     title="Démarrer un appel vocal"
+                                    aria-label="Démarrer un appel vocal"
                                     disabled={connecting}
                                     onClick={() => void join(conversation.channelId)}
                                 >
-                                    📞
+                                    <Phone size={20} />
                                 </button>
                             )}
                         </>

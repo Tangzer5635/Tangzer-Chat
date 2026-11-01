@@ -58,7 +58,7 @@ export function UnreadProvider({ children }: { children: ReactNode }) {
         if (mentioned && user.status !== "DND") {
             const channel = server.channels.find((c) => c.id === activity.channelId);
             const link = `/app/servers/${server.id}/channels/${activity.channelId}`;
-            pushToast(`🔔 Tu as été mentionné dans #${channel?.name ?? "?"} (${server.name})`, { link });
+            pushToast(`Tu as été mentionné dans #${channel?.name ?? "?"} (${server.name})`, { link });
             notify(`Mention dans #${channel?.name ?? "?"}`, server.name, () => navigate(link));
         }
     }, [user, pushToast, navigate]);
@@ -77,9 +77,9 @@ export function UnreadProvider({ children }: { children: ReactNode }) {
         if (user.status === "DND") {
             return;
         }
-        const preview = toPlainText(message.content) || "📷 Photo";
+        const preview = toPlainText(message.content) || "Photo";
         const short = preview.length > 60 ? `${preview.slice(0, 60)}…` : preview;
-        pushToast(`💬 ${message.author.displayName} : ${short}`, { link: `/app/dm/${channelId}` });
+        pushToast(`${message.author.displayName} : ${short}`, { link: `/app/dm/${channelId}` });
         notify(message.author.displayName, short, () => navigate(`/app/dm/${channelId}`));
     });
 

@@ -107,6 +107,11 @@
     color-scheme: light dark;
 }
 
+/* Fond derrière les fenêtres modales (::backdrop n'hérite pas partout de :root). */
+:root, ::backdrop {
+    --backdrop: rgba(22, 22, 22, 0.6);
+}
+
 :root[data-theme="light"] {
     color-scheme: light;
 }
