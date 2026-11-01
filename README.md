@@ -1,9 +1,13 @@
-# ⚡ Tangzer
+# Préau
 
-Tangzer est une messagerie instantanée inspirée de Discord, développée avec
-**Spring Boot**, **Spring Security / JWT**, **STOMP sur WebSocket** et **React + TypeScript**.
+<img src="tangzer-front/public/icon-192.png" alt="" width="64" height="64" align="right" />
 
-![Tangzer](tangzer-front/public/favicon.jpg)
+Préau est une messagerie instantanée (serveurs, salons, messages privés, appels),
+développée avec **Spring Boot**, **Spring Security / JWT**, **STOMP sur WebSocket**
+et **React + TypeScript**. L'interface est sobre et accessible : contrastes WCAG AA,
+navigation au clavier, formulaires étiquetés.
+
+Le dépôt et le code gardent leur nom d'origine (`Tangzer-Chat`) ; seul le nom affiché change.
 
 La feuille de route complète est dans [`docs/ROADMAP.md`](docs/ROADMAP.md),
 et la liste de tout ce qu'il y a à essayer dans [`docs/GUIDE_DE_TEST.md`](docs/GUIDE_DE_TEST.md).
@@ -12,8 +16,8 @@ et la liste de tout ce qu'il y a à essayer dans [`docs/GUIDE_DE_TEST.md`](docs/
 
 - **Comptes** : inscription, connexion, session conservée au rechargement.
 - **Serveurs** : création (nom, emoji, couleur, description), serveurs publics ou privés,
-  page « Explorer » pour trouver les serveurs publics, serveur public « Tangzer » rejoint
-  automatiquement par chaque inscrit.
+  page « Explorer » pour trouver les serveurs publics, serveur public par défaut (« Préau »
+  sur une nouvelle installation) rejoint automatiquement par chaque inscrit.
 - **Invitations** : liens `/invite/CODE` avec durée de validité et nombre d'utilisations.
 - **Salons** : création, renommage, sujet, suppression (style Discord : `mon-salon`).
 - **Rôles** : propriétaire, admins, membres ; nommer/retirer un admin, expulser.
@@ -35,11 +39,11 @@ et la liste de tout ce qu'il y a à essayer dans [`docs/GUIDE_DE_TEST.md`](docs/
   notifications), invisible ; statut personnalisé (« 🎮 En partie ») ; plusieurs onglets gérés ;
   membres hors ligne regroupés et grisés.
 - **Personnalisation** : photo de profil (recadrée automatiquement), nom affiché, bio, couleur
-  de bannière, carte de profil ; 6 thèmes (Tangzer, Minuit, Clair, Néon, Sakura, Forêt), couleur
-  d'accent, taille du texte, mode compact ; notifications du bureau et sons ; choix du micro et
-  de la caméra avec test ; changement de mot de passe ; image d'icône pour les serveurs.
+  de bannière, carte de profil ; thème clair, sombre ou selon l'appareil, taille du texte,
+  mode compact ; notifications du bureau et sons ; choix du micro et de la caméra avec test ;
+  changement de mot de passe ; image d'icône pour les serveurs.
 - **Mobile** : la navigation s'ouvre en tiroir (☰).
-- **Non-lus** : salons en gras, badges de mentions, titre de l'onglet « (3) Tangzer ».
+- **Non-lus** : salons en gras, badges de mentions, titre de l'onglet « (3) Préau ».
 - **Messages privés** enregistrés, avec les mêmes possibilités que les salons, accusé « Vu »,
   recherche d'utilisateurs, notifications avec aperçu (voir [`docs/MESSAGES_PRIVES.md`](docs/MESSAGES_PRIVES.md)).
 
@@ -156,6 +160,19 @@ cd tangzer-front && npm test     # frontend (Vitest)
 ```
 
 La CI GitHub Actions lance les tests, le lint, le build du front et le build des images Docker.
+
+## 🎨 Design
+
+Toutes les couleurs, tailles de texte et espacements sont dans un seul fichier,
+[`tangzer-front/src/styles/tokens.css`](tangzer-front/src/styles/tokens.css). Chaque couleur
+y est écrite une fois sous la forme `light-dark(clair, sombre)`.
+Le test `tokens.test.ts` vérifie que chaque association texte/fond atteint le niveau
+WCAG AA dans les deux modes : une couleur trop pâle fait échouer la CI.
+
+- Police : Source Sans 3 (licence OFL), servie avec l'application.
+- Charte : prune `#6b2f73` et ocre `#9a5500`, angles droits, filets plutôt qu'ombres.
+- Le style s'inspire des principes des systèmes de design publics (lisibilité, sobriété,
+  accessibilité) sans en reprendre ni les composants, ni la police, ni aucun emblème.
 
 ## 🧱 Architecture
 

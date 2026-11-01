@@ -38,7 +38,7 @@ export default function VoiceRoom({ channel }: { channel: Channel }) {
                     )}
                 </div>
                 {!supported && (
-                    <p className="form-error">Le micro n'est disponible qu'en HTTPS : ouvre Tangzer avec https://…</p>
+                    <p className="form-error">Le micro n'est disponible qu'en HTTPS : ouvre l'application avec https://…</p>
                 )}
             </div>
         </section>

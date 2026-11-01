@@ -1,4 +1,5 @@
 import { initials } from "../lib/avatar";
+import { readableTextOn } from "../lib/contrast";
 
 interface ServerIconProps {
     server: { name: string; icon: string | null; iconUrl?: string | null; color: string };
@@ -18,6 +19,7 @@ export default function ServerIcon({ server, size = 48 }: ServerIconProps) {
                 height: size,
                 fontSize: server.icon ? size * 0.5 : size * 0.36,
                 background: server.color,
+                color: readableTextOn(server.color),
             }}
             aria-hidden="true"
         >

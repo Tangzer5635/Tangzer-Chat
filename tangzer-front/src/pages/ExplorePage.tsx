@@ -6,6 +6,7 @@ import ServerIcon from "../components/ServerIcon";
 import { useServers } from "../context/servers";
 import { useToasts } from "../context/toasts";
 import type { DiscoverServer } from "../types/api";
+import { APP_NAME } from "../lib/brand";
 
 /** /app/explore : les serveurs publics, avec recherche. */
 export default function ExplorePage() {
@@ -47,7 +48,7 @@ export default function ExplorePage() {
     return (
         <main className="explore">
             <section className="explore-hero">
-                <h1>Trouve ta communauté sur Tangzer</h1>
+                <h1>Trouve ta communauté sur {APP_NAME}</h1>
                 <p>Des serveurs publics, ouverts à tous. Rejoins-en un en un clic.</p>
                 <input
                     className="explore-search"

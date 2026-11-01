@@ -3,6 +3,7 @@ import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../context/auth";
 import AuthLayout from "../layout/AuthLayout";
+import { APP_NAME } from "../lib/brand";
 
 export default function Register() {
     const { user, register } = useAuth();
@@ -44,7 +45,7 @@ export default function Register() {
     return (
         <AuthLayout>
             <h2>Créer un compte</h2>
-            <p className="login-subtitle">Rejoins la communauté Tangzer.</p>
+            <p className="login-subtitle">Rejoins la communauté {APP_NAME}.</p>
 
             <form onSubmit={handleSubmit}>
                 <label htmlFor="register-username">Nom d'utilisateur</label>

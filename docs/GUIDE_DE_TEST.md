@@ -21,7 +21,8 @@ Comptes de démo : `admin/admin`, `tanguy/1234`, `pigloo/127845`, `user/user`.
 - [ ] Mauvais mot de passe → message d'erreur.
 
 ## 2. Serveurs et salons
-- [ ] Tout le monde arrive sur le serveur public **Tangzer** (#général, #dev, #wb47…).
+- [ ] Tout le monde arrive sur le serveur public par défaut (**Préau** sur une nouvelle installation,
+  l'ancien serveur garde son nom sur une base existante) : #général, #dev, #wb47…
 - [ ] « + » dans le rail : créer un serveur (emoji, couleur, privé).
 - [ ] Menu du serveur (clic sur son nom) : inviter → copier le lien → l'ouvrir dans l'autre navigateur → accepter.
 - [ ] Liste des membres (👥) : nommer admin, expulser.
@@ -33,10 +34,10 @@ Comptes de démo : `admin/admin`, `tanguy/1234`, `pigloo/127845`, `user/user`.
 - [ ] Survol d'un message : réagir 😀, répondre ↩️, modifier ✏️, supprimer 🗑️.
 - [ ] Flèche ↑ dans la zone vide : modifier son dernier message.
 - [ ] Coller un lien d'invitation : une carte « Rejoindre » apparaît.
-- [ ] Salon non lu en gras, badge rouge sur une mention, titre de l'onglet « (1) Tangzer ».
+- [ ] Salon non lu en gras, badge rouge sur une mention, titre de l'onglet « (1) Préau ».
 
 ## 4. Messages privés
-- [ ] Fiche d'un membre → « Message privé », ou icône Tangzer en haut du rail → « + ».
+- [ ] Fiche d'un membre → « Message privé », ou logo Préau en haut du rail → « + ».
 - [ ] Notification avec aperçu chez l'autre, « ✓✓ Vu » quand il a lu.
 
 ## 5. Photos
@@ -57,7 +58,8 @@ Comptes de démo : `admin/admin`, `tanguy/1234`, `pigloo/127845`, `user/user`.
 
 ## 9. Personnalisation
 - [ ] ⚙️ en bas à gauche → **Mon profil** : photo, nom affiché, bio, bannière (les autres voient le changement en direct).
-- [ ] **Apparence** : 6 thèmes, couleur d'accent, taille du texte, mode compact.
+- [ ] **Apparence** : thème clair, sombre ou selon l'appareil (essayer de changer le réglage
+  clair/sombre de l'ordinateur), taille du texte, mode compact.
 - [ ] **Notifications** : notifications du bureau et sons.
 - [ ] **Voix et vidéo** : choisir le micro/la caméra, tester le micro.
 - [ ] **Mon compte** : changer de mot de passe.

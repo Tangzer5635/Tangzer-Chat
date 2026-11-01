@@ -11,6 +11,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@fontsource-variable/source-sans-3": "^5.3.1",
     "@stomp/stompjs": "^7.2.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",

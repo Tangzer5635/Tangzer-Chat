@@ -19,7 +19,7 @@ export function notify(title: string, body: string, onClick?: () => void) {
 
     if (prefs.desktopNotifications && document.visibilityState === "hidden"
         && "Notification" in window && Notification.permission === "granted") {
-        const notification = new Notification(title, { body, icon: "/favicon.jpg" });
+        const notification = new Notification(title, { body, icon: "/icon-192.png" });
         notification.onclick = () => {
             window.focus();
             onClick?.();

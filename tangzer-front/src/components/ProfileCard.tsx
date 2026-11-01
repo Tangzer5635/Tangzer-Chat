@@ -7,6 +7,7 @@ import { colorFor } from "../lib/avatar";
 import { STATUS_LABELS } from "../lib/presence";
 import type { Profile, User } from "../types/api";
 import Avatar from "./Avatar";
+import { APP_NAME } from "../lib/brand";
 
 interface ProfileCardProps {
     user: User;
@@ -53,7 +54,7 @@ export default function ProfileCard({ user, children, extra }: ProfileCardProps)
                 )}
                 {profile && (
                     <section className="profile-card-section">
-                        <h5>Membre de Tangzer depuis</h5>
+                        <h5>Membre de {APP_NAME} depuis</h5>
                         <p>{new Date(profile.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</p>
                     </section>
                 )}

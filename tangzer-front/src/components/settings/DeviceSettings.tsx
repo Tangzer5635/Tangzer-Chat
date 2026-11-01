@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { rms } from "../../calls/callsState";
 import { playMessageSound } from "../../calls/audio";
 import { deviceConstraint, loadDevicePrefs, saveDevicePrefs, type DevicePrefs } from "../../lib/devicePrefs";
+import { APP_NAME } from "../../lib/brand";
 
 /** Notifications du bureau et sons : réglages de cet appareil. */
 export function NotificationSettings() {
@@ -38,7 +39,7 @@ export function NotificationSettings() {
                     <strong>Notifications du bureau</strong>
                     <small>
                         {supported
-                            ? "Une notification système pour les messages privés et les mentions quand Tangzer n'est pas affiché."
+                            ? `Une notification système pour les messages privés et les mentions quand ${APP_NAME} n'est pas affiché.`
                             : "Ton navigateur ne gère pas les notifications (ou la page n'est pas en HTTPS)."}
                     </small>
                 </span>

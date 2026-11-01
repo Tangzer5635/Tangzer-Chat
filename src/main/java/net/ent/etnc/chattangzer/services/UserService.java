@@ -26,7 +26,8 @@ public class UserService {
     public static final int PASSWORD_MAX_LENGTH = 72;
     public static final int DISPLAY_NAME_MAX_LENGTH = 32;
     public static final int BIO_MAX_LENGTH = 190;
-    public static final Set<String> THEMES = Set.of("tangzer", "minuit", "clair", "neon", "sakura", "foret");
+    /** Clair, sombre, ou selon le réglage de l'appareil. */
+    public static final Set<String> THEMES = Set.of("light", "dark", "system");
     public static final int FONT_SIZE_MIN = 12;
     public static final int FONT_SIZE_MAX = 20;
     private static final Pattern COLOR_PATTERN = Pattern.compile("^#[0-9a-fA-F]{6}$");
@@ -76,7 +77,7 @@ public class UserService {
         }
 
         User user = userRepository.save(new User(username, displayName, passwordEncoder.encode(password)));
-        // Tout nouvel inscrit arrive sur le serveur public de Tangzer.
+        // Tout nouvel inscrit arrive sur le serveur public par défaut.
         serverService.joinDefaultServer(user);
         return user;
     }
@@ -120,7 +121,7 @@ public class UserService {
         return user;
     }
 
-    /** Thème, couleur d'accent, taille du texte, mode compact. */
+    /** Thème, taille du texte, mode compact. */
     @Transactional
     public User updatePreferences(Long userId, ProfileRequests.Preferences request) {
         User user = getById(userId);
@@ -130,9 +131,6 @@ public class UserService {
                 throw ApiException.badRequest("Thème inconnu");
             }
             user.setTheme(request.theme());
-        }
-        if (request.accentColor() != null) {
-            user.setAccentColor(normalizeOptionalColor(request.accentColor()));
         }
         if (request.fontSize() != null) {
             if (request.fontSize() < FONT_SIZE_MIN || request.fontSize() > FONT_SIZE_MAX) {

@@ -7,6 +7,7 @@ import { useUnread } from "../context/unread";
 import { sumFor } from "../lib/unreadReducer";
 import CreateServerModal from "./modals/CreateServerModal";
 import ServerIcon from "./ServerIcon";
+import Logo from "./Logo";
 
 /** Colonne de gauche : messages privés, mes serveurs, créer, explorer. */
 export default function ServerRail() {
@@ -22,7 +23,7 @@ export default function ServerRail() {
         <nav className="server-rail" aria-label="Serveurs">
             <NavLink to="/app/dm" className={railClass} data-tooltip="Messages privés">
                 <span className="rail-home">
-                    <img src="/favicon.jpg" alt="" />
+                    <Logo size={28} />
                 </span>
                 {unreadCount > 0 && <span className="rail-badge">{unreadCount > 99 ? "99+" : unreadCount}</span>}
             </NavLink>

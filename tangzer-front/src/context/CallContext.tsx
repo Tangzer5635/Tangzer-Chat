@@ -15,7 +15,7 @@ import { CallContext, type CallContextValue, type CurrentCall } from "./calls";
 import { useServers } from "./servers";
 import { useToasts } from "./toasts";
 
-/** Identifie cet onglet auprès du serveur (on peut avoir Tangzer ouvert plusieurs fois). */
+/** Identifie cet onglet auprès du serveur (on peut avoir l'application ouverte plusieurs fois). */
 const CLIENT_ID = randomId();
 const RING_TIMEOUT_MS = 30_000;
 

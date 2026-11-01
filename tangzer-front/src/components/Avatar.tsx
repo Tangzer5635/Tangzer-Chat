@@ -2,6 +2,7 @@ import { useLiveUser } from "../context/users";
 import { colorFor, initials } from "../lib/avatar";
 import { STATUS_LABELS } from "../lib/presence";
 import type { UserStatus } from "../types/api";
+import { readableTextOn } from "../lib/contrast";
 
 interface AvatarProps {
     user: { id: number; displayName: string; avatarUrl?: string | null };
@@ -19,7 +20,7 @@ export default function Avatar({ user, size = 40, status }: AvatarProps) {
     ) : (
         <span
             className="avatar"
-            style={{ width: size, height: size, fontSize: size * 0.4, background: colorFor(live.id) }}
+            style={{ width: size, height: size, fontSize: size * 0.4, background: colorFor(live.id), color: readableTextOn(colorFor(live.id)) }}
             aria-hidden="true"
         >
             {initials(live.displayName, 1)}

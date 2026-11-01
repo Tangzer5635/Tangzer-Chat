@@ -1,4 +1,5 @@
-/** Choix proposés à la création d'un serveur (mêmes couleurs que le backend). */
+/** Choix proposés à la création d'un serveur (mêmes couleurs que le backend).
+ * Toutes gardent des initiales blanches lisibles (vérifié par contrast.test.ts). */
 
 export const SERVER_ICONS = [
     "🎮", "🎵", "📚", "💻", "🎨", "⚽", "🍕", "🚀",
@@ -6,8 +7,8 @@ export const SERVER_ICONS = [
 ];
 
 export const SERVER_COLORS = [
-    "#5865f2", "#eb459e", "#3ba55c", "#faa61a", "#ed4245",
-    "#9b59b6", "#1abc9c", "#e67e22", "#3498db", "#e91e63",
+    "#6b2f73", "#9a5500", "#00636b", "#1c6a43", "#0b5fa5",
+    "#a63a2b", "#4b4a9e", "#4a5a66", "#9b2f5c", "#7a4a24",
 ];
 
 export const INVITE_DURATIONS: { label: string; hours: number | null }[] = [

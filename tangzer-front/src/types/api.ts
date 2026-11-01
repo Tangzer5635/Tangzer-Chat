@@ -11,12 +11,12 @@ export interface User {
 /** Statut : les quatre premiers se choisissent, OFFLINE est calculé par le serveur. */
 export type UserStatus = "ONLINE" | "IDLE" | "DND" | "INVISIBLE" | "OFFLINE";
 
-export type ThemeId = "tangzer" | "minuit" | "clair" | "neon" | "sakura" | "foret";
+/** Clair, sombre, ou selon le réglage de l'appareil. */
+export type ThemeId = "light" | "dark" | "system";
 
 /** Préférences d'apparence (enregistrées sur le compte). */
 export interface Appearance {
     theme: ThemeId;
-    accentColor: string | null;
     fontSize: number;
     compact: boolean;
 }

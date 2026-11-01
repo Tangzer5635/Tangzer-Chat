@@ -6,6 +6,7 @@ import ServerIcon from "../components/ServerIcon";
 import { useServers } from "../context/servers";
 import { describeExpiry } from "../lib/invites";
 import type { InvitePreview } from "../types/api";
+import { APP_NAME } from "../lib/brand";
 
 /** /invite/:code : aperçu du serveur puis acceptation de l'invitation. */
 export default function InvitePage() {
@@ -49,7 +50,7 @@ export default function InvitePage() {
                         <div className="invite-broken">🔗</div>
                         <h1>Invitation invalide</h1>
                         <p className="invite-subtitle">{error}</p>
-                        <Link to="/app" className="button-primary">Retour à Tangzer</Link>
+                        <Link to="/app" className="button-primary">Retour à {APP_NAME}</Link>
                     </>
                 )}
 
