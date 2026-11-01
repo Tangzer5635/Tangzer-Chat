@@ -7,3 +7,5 @@ spring:
 
 app:
   demo-data: false
+  storage:
+    dir: ${java.io.tmpdir}/tangzer-test-uploads

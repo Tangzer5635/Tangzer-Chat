@@ -5,6 +5,7 @@ import { mentionsUser, toPlainText } from "../../lib/markdown";
 import { formatDateTime, formatTime } from "../../lib/messageRows";
 import type { Message, User } from "../../types/api";
 import Avatar from "../Avatar";
+import AttachmentGrid from "./AttachmentGrid";
 import MessageText from "./MessageText";
 
 interface MessageItemProps {
@@ -58,7 +59,7 @@ export default function MessageItem(props: MessageItemProps) {
                     <span className="reply-spine" />
                     <Avatar user={message.replyTo.author} size={16} />
                     <strong>{message.replyTo.author.displayName}</strong>
-                    <span className="reply-preview-text">{toPlainText(message.replyTo.content)}</span>
+                    <span className="reply-preview-text">{toPlainText(message.replyTo.content) || "📷 Photo"}</span>
                 </button>
             )}
 
@@ -94,12 +95,14 @@ export default function MessageItem(props: MessageItemProps) {
                                 {" • "}entrée pour <button className="link-button" onClick={() => props.onSaveEdit(draft)}>enregistrer</button>
                             </p>
                         </div>
-                    ) : (
+                    ) : (message.content || message.editedAt) && (
                         <div className="message-content">
                             <MessageText content={message.content} myUsername={me.username} />
                             {message.editedAt && <span className="message-edited" title={formatDateTime(message.editedAt)}> (modifié)</span>}
                         </div>
                     )}
+
+                    <AttachmentGrid attachments={message.attachments} />
 
                     {props.seen && <p className="message-seen">✓✓ Vu</p>}
 

@@ -77,6 +77,17 @@ export interface MessagePreview {
     content: string;
 }
 
+export interface Attachment {
+    id: string;
+    /** Adresse de l'image (lisible sans token). */
+    url: string;
+    fileName: string;
+    contentType: string;
+    size: number;
+    width: number | null;
+    height: number | null;
+}
+
 export interface Message {
     id: number;
     channelId: number;
@@ -86,6 +97,7 @@ export interface Message {
     editedAt: string | null;
     replyTo: MessagePreview | null;
     reactions: Reaction[];
+    attachments: Attachment[];
     /** Identifiant temporaire choisi à l'envoi, pour retrouver le message « en cours ». */
     nonce?: string | null;
     /** Côté front uniquement : envoi en cours / échoué. */

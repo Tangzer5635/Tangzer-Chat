@@ -12,7 +12,7 @@ const conversation = (channelId: number, otherUser: User, lastMessageAt: string 
 });
 
 const message = (id: number, author: User, content: string, createdAt: string): Message => ({
-    id, channelId: 0, author, content, createdAt, editedAt: null, replyTo: null, reactions: [],
+    id, channelId: 0, author, content, createdAt, editedAt: null, replyTo: null, reactions: [], attachments: [],
 });
 
 describe("dmReducer", () => {

@@ -14,6 +14,7 @@ const message = (id: number, overrides: Partial<Message> = {}): Message => ({
     editedAt: null,
     replyTo: null,
     reactions: [],
+    attachments: [],
     ...overrides,
 });
 

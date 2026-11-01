@@ -958,7 +958,7 @@ button:disabled {
     padding: 11px 16px;
     border: 0;
     border-radius: var(--radius);
-    background: var(--bg-input);
+    background: transparent;
     color: var(--text);
     resize: none;
     outline: none;
@@ -1390,6 +1390,268 @@ button:disabled {
 
 .rail-item.unread:not(.active)::before {
     height: 8px;
+}
+
+/* ------------------------- Photos ------------------------- */
+
+.chat {
+    position: relative;
+}
+
+.composer-box {
+    display: flex;
+    align-items: flex-start;
+    border-radius: var(--radius);
+    background: var(--bg-input);
+}
+
+.composer-box textarea {
+    flex: 1;
+    padding-left: 4px;
+    background: transparent;
+}
+
+.composer-attach {
+    flex: 0 0 auto;
+    width: 24px;
+    height: 24px;
+    margin: 10px 4px 0 14px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: var(--text-muted);
+    color: var(--bg-input);
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 24px;
+}
+
+.composer-attach:hover {
+    background: var(--text-strong);
+}
+
+.upload-tray {
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+    border-radius: var(--radius) var(--radius) 0 0;
+    background: var(--bg-input);
+    border-bottom: 1px solid var(--bg-hover);
+    overflow-x: auto;
+}
+
+.upload-tray + .composer-reply,
+.upload-tray + .composer-box {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+.upload-item {
+    position: relative;
+    flex: 0 0 140px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px;
+    border-radius: 4px;
+    background: var(--bg-sidebar);
+}
+
+.upload-item img {
+    width: 100%;
+    height: 100px;
+    border-radius: 3px;
+    object-fit: cover;
+}
+
+.upload-item.failed img {
+    opacity: 0.4;
+}
+
+.upload-name {
+    overflow: hidden;
+    color: var(--text-muted);
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.upload-progress {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    top: 92px;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+}
+
+.upload-progress span {
+    display: block;
+    height: 100%;
+    background: var(--success);
+    transition: width 0.2s;
+}
+
+.upload-error {
+    position: absolute;
+    top: 40px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 24px;
+}
+
+.upload-remove {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: var(--bg-floating);
+    color: var(--danger);
+    font-size: 12px;
+    box-shadow: var(--shadow);
+}
+
+.attachments {
+    display: grid;
+    gap: 4px;
+    max-width: 400px;
+    margin-top: 6px;
+}
+
+.attachments.grid-2 {
+    grid-template-columns: 1fr 1fr;
+}
+
+.attachments.grid-3, .attachments.grid-4 {
+    grid-template-columns: 1fr 1fr;
+}
+
+.attachments.grid-3 .attachment:first-child {
+    grid-column: span 2;
+}
+
+.attachment {
+    display: block;
+    max-width: 400px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius);
+    background: var(--bg-sidebar);
+    overflow: hidden;
+    cursor: zoom-in;
+}
+
+.attachments.single .attachment img {
+    display: block;
+    max-width: 400px;
+    max-height: 300px;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.attachments:not(.single) .attachment {
+    aspect-ratio: 4 / 3;
+}
+
+.attachments:not(.single) .attachment img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 32px;
+    background: rgba(0, 0, 0, 0.85);
+    animation: fade-in 0.12s ease-out;
+}
+
+.lightbox img {
+    max-width: 100%;
+    max-height: calc(100vh - 120px);
+    border-radius: 4px;
+    box-shadow: var(--shadow);
+    cursor: default;
+}
+
+.lightbox-info {
+    display: flex;
+    gap: 16px;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.lightbox-nav {
+    position: absolute;
+    top: 50%;
+    width: 48px;
+    height: 48px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    font-size: 32px;
+    line-height: 44px;
+    transform: translateY(-50%);
+}
+
+.lightbox-nav:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.lightbox-nav.prev {
+    left: 24px;
+}
+
+.lightbox-nav.next {
+    right: 24px;
+}
+
+.drop-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 30;
+    display: grid;
+    place-items: center;
+    background: rgba(88, 101, 242, 0.85);
+    color: #fff;
+    text-align: center;
+}
+
+.drop-overlay div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 32px 48px;
+    border: 2px dashed rgba(255, 255, 255, 0.7);
+    border-radius: 16px;
+    font-size: 48px;
+    pointer-events: none;
+}
+
+.drop-overlay strong {
+    font-size: 22px;
+}
+
+.drop-overlay span {
+    font-size: 14px;
+    opacity: 0.85;
 }
 
 /* ------------------------- Messages privés ------------------------- */

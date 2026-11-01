@@ -17,6 +17,7 @@ public record MessageDto(
         Instant editedAt,
         MessagePreviewDto replyTo,
         List<ReactionDto> reactions,
+        List<AttachmentDto> attachments,
         String nonce
 ) {
 }

@@ -12,3 +12,6 @@ Thumbs.db
 
 # Certificats HTTPS générés par nginx (Docker)
 certs/
+
+# Photos envoyées en développement
+data/

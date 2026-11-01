@@ -68,7 +68,17 @@ export default function MessageList({ messages, hasMore, loadingOlder, onLoadOld
 
     return (
         <div className="messages-wrapper">
-            <div className="messages" ref={scrollRef} onScroll={onScroll}>
+            <div
+                className="messages"
+                ref={scrollRef}
+                onScroll={onScroll}
+                // Une image qui finit de charger agrandit le fil : on reste collé en bas.
+                onLoadCapture={() => {
+                    if (stickToBottom.current && scrollRef.current) {
+                        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+                    }
+                }}
+            >
                 {hasMore ? <div className="messages-loading">{loadingOlder ? "Chargement…" : ""}</div> : welcome}
 
                 {buildRows(messages).map((row) =>

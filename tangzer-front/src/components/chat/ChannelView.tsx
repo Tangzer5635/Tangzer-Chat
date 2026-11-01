@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useReducer, useState, type DragEvent, type ReactNode } from "react";
 
 import * as messagesApi from "../../api/messages";
 import { useAuth } from "../../context/auth";
@@ -9,10 +9,11 @@ import { typingLabel } from "../../lib/messageRows";
 import { initialMessagesState, messagesReducer } from "../../lib/messagesReducer";
 import { useSubscription } from "../../realtime/hooks";
 import { publish } from "../../realtime/stomp";
-import type { Message, Reaction, RealtimeEvent, User } from "../../types/api";
+import type { Attachment, Message, Reaction, RealtimeEvent, User } from "../../types/api";
 import Composer from "./Composer";
 import MessageItem from "./MessageItem";
 import MessageList from "./MessageList";
+import { useUploads } from "./useUploads";
 
 const TYPING_DISPLAY_MS = 6000;
 
@@ -50,6 +51,9 @@ export default function ChannelView(props: ChannelViewProps) {
     const [typing, setTyping] = useState<Record<number, { name: string; until: number }>>({});
     const [visible, setVisible] = useState(() => document.visibilityState === "visible");
     const [partnerReadId, setPartnerReadId] = useState(props.partnerReadId ?? 0);
+    const [dragging, setDragging] = useState(false);
+    const showError = useCallback((message: string) => pushToast(message, { tone: "error" }), [pushToast]);
+    const uploads = useUploads(showError);
 
     // ------------------------------------------------------------ Chargement
 
@@ -152,8 +156,9 @@ export default function ChannelView(props: ChannelViewProps) {
 
     // ------------------------------------------------------------ Actions
 
-    const send = async (content: string) => {
+    const send = async (content: string, attachments: Attachment[] = uploads.attachments) => {
         const nonce = randomId();
+        uploads.clear();
         dispatch({
             type: "pendingAdded",
             message: {
@@ -165,6 +170,7 @@ export default function ChannelView(props: ChannelViewProps) {
                 editedAt: null,
                 replyTo: replyTo && { id: replyTo.id, author: replyTo.author, content: replyTo.content },
                 reactions: [],
+                attachments,
                 nonce,
                 pending: true,
             },
@@ -172,7 +178,10 @@ export default function ChannelView(props: ChannelViewProps) {
         const replyToId = replyTo?.id ?? null;
         setReplyTo(null);
         try {
-            dispatch({ type: "received", message: await messagesApi.postMessage(channelId, content, replyToId, nonce) });
+            dispatch({
+                type: "received",
+                message: await messagesApi.postMessage(channelId, content, replyToId, nonce, attachments.map((a) => a.id)),
+            });
         } catch (err) {
             dispatch({ type: "failed", nonce });
             pushToast(err instanceof Error ? err.message : "Message non envoyé.", { tone: "error" });
@@ -181,7 +190,23 @@ export default function ChannelView(props: ChannelViewProps) {
 
     const retry = (message: Message) => {
         dispatch({ type: "deleted", messageId: message.id });
-        void send(message.content);
+        void send(message.content, message.attachments);
+    };
+
+    // Glisser-déposer des images n'importe où sur le salon.
+    const hasFiles = (e: DragEvent) => Array.from(e.dataTransfer.types).includes("Files");
+    const onDragOver = (e: DragEvent) => {
+        if (hasFiles(e)) {
+            e.preventDefault();
+            setDragging(true);
+        }
+    };
+    const onDrop = (e: DragEvent) => {
+        if (hasFiles(e)) {
+            e.preventDefault();
+            setDragging(false);
+            uploads.addFiles(Array.from(e.dataTransfer.files));
+        }
     };
 
     const saveEdit = async (message: Message, content: string) => {
@@ -242,7 +267,17 @@ export default function ChannelView(props: ChannelViewProps) {
     const typingText = typingLabel(Object.values(typing).map((t) => t.name));
 
     return (
-        <section className="chat">
+        <section
+            className="chat"
+            onDragOver={onDragOver}
+            onDragLeave={(e) => e.currentTarget === e.target && setDragging(false)}
+            onDrop={onDrop}
+        >
+            {dragging && (
+                <div className="drop-overlay" onDragLeave={() => setDragging(false)}>
+                    <div>📷<strong>Dépose tes images ici</strong><span>PNG, JPEG, GIF ou WEBP · 10 Mo max · 4 par message</span></div>
+                </div>
+            )}
             <header className="chat-header">{header}</header>
 
             {!state.loaded ? (
@@ -288,9 +323,13 @@ export default function ChannelView(props: ChannelViewProps) {
                 placeholder={placeholder}
                 replyTo={replyTo}
                 onCancelReply={() => setReplyTo(null)}
-                onSend={send}
+                onSend={(content) => send(content)}
                 onTyping={() => publish(`/app/channels/${channelId}/typing`)}
                 onEditLast={editLast}
+                uploads={uploads.items}
+                uploading={uploads.uploading}
+                onAddFiles={uploads.addFiles}
+                onRemoveUpload={uploads.remove}
             />
         </section>
     );

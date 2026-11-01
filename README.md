@@ -22,6 +22,9 @@ La feuille de route complète est dans [`docs/ROADMAP.md`](docs/ROADMAP.md).
   (`**gras**`, `*italique*`, `__souligné__`, `~~barré~~`, `||spoiler||`, `` `code` ``, blocs de code,
   liens), mentions `@pseudo`, réponses, réactions emoji, modification (flèche ↑) et suppression
   (auteur ou modérateurs), indicateur « en train d'écrire », cartes pour les liens d'invitation.
+- **Photos** : bouton +, glisser-déposer ou coller une capture d'écran ; aperçu et progression
+  avant l'envoi ; jusqu'à 4 images (PNG, JPEG, GIF, WEBP, 10 Mo) par message ; grille et
+  visionneuse plein écran. Le serveur vérifie le vrai type du fichier, pas son nom.
 - **Non-lus** : salons en gras, badges de mentions, titre de l'onglet « (3) Tangzer ».
 - **Messages privés** enregistrés, avec les mêmes possibilités que les salons, accusé « Vu »,
   recherche d'utilisateurs, notifications avec aperçu (voir [`docs/MESSAGES_PRIVES.md`](docs/MESSAGES_PRIVES.md)).
@@ -41,6 +44,8 @@ l'avertissement du navigateur une première fois).
 | `frontend` | nginx : sert le front React, relaie `/api` et `/ws`     |
 | `backend`  | API Spring Boot + WebSocket STOMP (non exposé)          |
 | `db`       | PostgreSQL 16 (données dans le volume `db-data`)        |
+
+Les photos envoyées sont stockées dans le volume `uploads`.
 
 ### Accès depuis un autre appareil du réseau
 
@@ -103,6 +108,7 @@ démonstration suivants sont créés au démarrage (désactivable avec `APP_DEMO
 | `DB_URL` | `jdbc:postgresql://localhost:5432/tangzer` | Base PostgreSQL (fixé par compose) |
 | `DB_USERNAME` / `DB_PASSWORD` | `tangzer` / `tangzer` | Identifiants de la base |
 | `APP_DEMO_DATA` | `true` | Crée les comptes de démonstration |
+| `STORAGE_DIR` | `./data/uploads` | Dossier des photos (fixé par compose sur le volume `uploads`) |
 | `JWT_SECRET` | secret de dev | Clé de signature des JWT (32 caractères min.) |
 | `JWT_EXPIRATION_MS` | `604800000` (7 j) | Durée de validité d'une session |
 | `ALLOWED_ORIGINS` | `*` | Origines autorisées (CORS + WebSocket) |
