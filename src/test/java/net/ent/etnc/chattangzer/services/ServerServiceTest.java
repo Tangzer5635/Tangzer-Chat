@@ -3,6 +3,7 @@ package net.ent.etnc.chattangzer.services;
 import net.ent.etnc.chattangzer.exceptions.ApiException;
 import net.ent.etnc.chattangzer.models.dtos.ServerDto;
 import net.ent.etnc.chattangzer.models.dtos.ServerRequest;
+import net.ent.etnc.chattangzer.models.entities.ChannelType;
 import net.ent.etnc.chattangzer.models.entities.MemberRole;
 import net.ent.etnc.chattangzer.models.entities.User;
 import net.ent.etnc.chattangzer.repositories.ServerRepository;
@@ -63,7 +64,8 @@ class ServerServiceTest {
         assertThat(server.memberCount()).isEqualTo(1);
         assertThat(server.icon()).isEqualTo("🎮");
         assertThat(server.color()).matches("^#[0-9a-f]{6}$");
-        assertThat(server.channels()).extracting("name").containsExactly("général");
+        assertThat(server.channels()).extracting("name").containsExactly("général", "vocal");
+        assertThat(server.channels()).extracting("type").containsExactly(ChannelType.TEXT, ChannelType.VOICE);
         assertThat(serverService.listForUser(owner.getId())).extracting("id").containsExactly(server.id());
     }
 
@@ -196,7 +198,7 @@ class ServerServiceTest {
         assertThat(seenByAlice.isPublic()).isTrue();
         assertThat(seenByAlice.myRole()).isEqualTo(MemberRole.MEMBER);
         assertThat(seenByAlice.ownerId()).isEqualTo(owner.getId());
-        assertThat(seenByAlice.channels()).extracting("name").contains("général", "dev", "wb47");
+        assertThat(seenByAlice.channels()).extracting("name").contains("général", "dev", "wb47", "vocal");
     }
 
     @Test

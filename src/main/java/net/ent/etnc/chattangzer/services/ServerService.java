@@ -118,6 +118,7 @@ public class ServerService {
 
         membershipRepository.save(new Membership(server, owner, MemberRole.OWNER));
         channelRepository.save(new Channel(server, "général", ChannelType.TEXT, 0));
+        channelRepository.save(new Channel(server, "vocal", ChannelType.VOICE, 1));
 
         ServerDto dto = toDto(server, MemberRole.OWNER);
         // Les autres onglets du créateur ajoutent le serveur à leur liste.
@@ -270,6 +271,9 @@ public class ServerService {
         for (int i = 0; i < DEFAULT_SERVER_CHANNELS.size(); i++) {
             channelRepository.save(new Channel(server, DEFAULT_SERVER_CHANNELS.get(i), ChannelType.TEXT, i));
         }
+        Channel voice = new Channel(server, "vocal", ChannelType.VOICE, 100);
+        voice.setTopic("Viens discuter de vive voix");
+        channelRepository.save(voice);
     }
 
     // ------------------------------------------------------------------ Outils

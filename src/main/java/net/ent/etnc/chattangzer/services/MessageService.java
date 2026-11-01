@@ -12,6 +12,7 @@ import net.ent.etnc.chattangzer.models.dtos.UnreadDto;
 import net.ent.etnc.chattangzer.models.dtos.UserDto;
 import net.ent.etnc.chattangzer.models.entities.Channel;
 import net.ent.etnc.chattangzer.models.entities.ChannelRead;
+import net.ent.etnc.chattangzer.models.entities.ChannelType;
 import net.ent.etnc.chattangzer.models.entities.Message;
 import net.ent.etnc.chattangzer.models.entities.MessageReaction;
 import net.ent.etnc.chattangzer.models.entities.User;
@@ -100,6 +101,9 @@ public class MessageService {
 
     public MessageDto send(Long channelId, Long userId, MessageRequests.Send request) {
         Channel channel = accessService.requireChannel(channelId, userId);
+        if (channel.getType() == ChannelType.VOICE) {
+            throw ApiException.badRequest("On ne peut pas écrire dans un salon vocal");
+        }
         User author = getUser(userId);
 
         boolean hasAttachments = request.attachmentIds() != null && !request.attachmentIds().isEmpty();

@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 
 import { useAuth } from "../context/auth";
+import { CallProvider } from "../context/CallContext";
 import { DmProvider } from "../context/DmContext";
 import { PresenceProvider } from "../context/PresenceContext";
 import { ServersProvider } from "../context/ServersContext";
@@ -28,7 +29,9 @@ export default function ProtectedRoute() {
             <PresenceProvider>
                 <UnreadProvider>
                     <DmProvider>
-                        <Outlet />
+                        <CallProvider>
+                            <Outlet />
+                        </CallProvider>
                     </DmProvider>
                 </UnreadProvider>
             </PresenceProvider>

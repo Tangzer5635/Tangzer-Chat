@@ -1,11 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { searchUsers } from "../api/users";
 import Avatar from "../components/Avatar";
 import ChannelView from "../components/chat/ChannelView";
+import CallControls from "../components/calls/CallControls";
+import CallTiles from "../components/calls/CallTiles";
 import DmSidebar from "../components/DmSidebar";
 import { useAuth } from "../context/auth";
+import { useCalls } from "../context/calls";
 import { useDms } from "../context/dms";
 import { usePresence } from "../context/presence";
 import { useToasts } from "../context/toasts";
@@ -58,9 +61,21 @@ function DmHome() {
 export default function DirectMessagesPage() {
     const params = useParams();
     const channelId = params.channelId ? Number(params.channelId) : null;
-    const { getConversation, loaded } = useDms();
+    const { getConversation, loaded, refresh } = useDms();
     const { statusOf, customStatusOf } = usePresence();
+    const { calls, current, join, connecting } = useCalls();
     const conversation = channelId ? getConversation(channelId) : undefined;
+    const call = channelId ? calls[channelId] : undefined;
+    const inThisCall = current?.channelId === channelId;
+
+    // Lien vers une conversation pas encore dans ma liste (créée par l'autre) : on recharge une fois.
+    const refreshedFor = useRef<number | null>(null);
+    useEffect(() => {
+        if (loaded && channelId && !conversation && refreshedFor.current !== channelId) {
+            refreshedFor.current = channelId;
+            void refresh();
+        }
+    }, [loaded, channelId, conversation, refresh]);
 
     return (
         <>
@@ -76,6 +91,16 @@ export default function DirectMessagesPage() {
                 </div>
             ) : (
                 <ChannelView
+                    banner={call && (
+                        <div className="call-stage">
+                            <CallTiles participants={call.participants} />
+                            <div className="call-stage-actions">
+                                {inThisCall
+                                    ? <CallControls large />
+                                    : <button className="button-success" onClick={() => void join(conversation.channelId)}>Rejoindre l'appel</button>}
+                            </div>
+                        </div>
+                    )}
                     key={conversation.channelId}
                     channelId={conversation.channelId}
                     canModerate={false}
@@ -89,6 +114,17 @@ export default function DirectMessagesPage() {
                             <span className="chat-header-topic">
                                 {customStatusOf(conversation.otherUser.id) ?? STATUS_LABELS[statusOf(conversation.otherUser.id)]}
                             </span>
+                            <span className="spacer" />
+                            {!call && (
+                                <button
+                                    className="icon-button"
+                                    title="Démarrer un appel vocal"
+                                    disabled={connecting}
+                                    onClick={() => void join(conversation.channelId)}
+                                >
+                                    📞
+                                </button>
+                            )}
                         </>
                     }
                     welcome={

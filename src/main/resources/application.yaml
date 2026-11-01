@@ -25,6 +25,13 @@ app:
     # Dossier des photos envoyées (un volume Docker en production).
     dir: ${STORAGE_DIR:./data/uploads}
     max-file-size-bytes: 10485760
+  webrtc:
+    # Serveurs STUN (découverte d'adresse) séparés par des virgules.
+    stun-urls: ${WEBRTC_STUN_URLS:stun:stun.l.google.com:19302}
+    # Serveur TURN facultatif (relais quand la connexion directe est impossible).
+    turn-url: ${WEBRTC_TURN_URL:}
+    turn-username: ${WEBRTC_TURN_USERNAME:}
+    turn-credential: ${WEBRTC_TURN_CREDENTIAL:}
   # Crée les comptes de démonstration au démarrage.
   demo-data: ${APP_DEMO_DATA:true}
   # Origines autorisées pour le CORS et le WebSocket (séparées par des virgules).

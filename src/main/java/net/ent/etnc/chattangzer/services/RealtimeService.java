@@ -14,6 +14,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  *   /topic/servers/{id}   tout ce qui concerne un serveur (salons, membres…)
  *   /topic/channels/{id}  tout ce qui se passe dans un salon (messages…)
  *   /user/queue/events    événements personnels d'un utilisateur
+ *   /user/queue/calls     signalisation des appels (WebRTC)
  *
  * Si on est dans une transaction, l'envoi attend le commit : un client
  * ne reçoit jamais un événement qui serait ensuite annulé.
@@ -40,6 +41,11 @@ public class RealtimeService {
     public void toUser(String username, String type, Object payload) {
         afterCommit(() -> messagingTemplate.convertAndSendToUser(
                 username, "/queue/events", new RealtimeEvent(type, payload)));
+    }
+
+    public void toUserCalls(String username, String type, Object payload) {
+        afterCommit(() -> messagingTemplate.convertAndSendToUser(
+                username, "/queue/calls", new RealtimeEvent(type, payload)));
     }
 
     private void afterCommit(Runnable action) {

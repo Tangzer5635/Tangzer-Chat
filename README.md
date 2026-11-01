@@ -25,6 +25,9 @@ La feuille de route complète est dans [`docs/ROADMAP.md`](docs/ROADMAP.md).
 - **Photos** : bouton +, glisser-déposer ou coller une capture d'écran ; aperçu et progression
   avant l'envoi ; jusqu'à 4 images (PNG, JPEG, GIF, WEBP, 10 Mo) par message ; grille et
   visionneuse plein écran. Le serveur vérifie le vrai type du fichier, pas son nom.
+- **Appels audio** : salons vocaux (à plusieurs) et appels en message privé avec sonnerie,
+  accepter/refuser, micro et casque coupables, indicateur de qui parle, sons d'arrivée/départ.
+  Le son va directement d'un navigateur à l'autre (WebRTC), le serveur ne fait que mettre en relation.
 - **Présence** : en ligne, inactif (automatique après 5 min), ne pas déranger (plus de
   notifications), invisible ; statut personnalisé (« 🎮 En partie ») ; plusieurs onglets gérés ;
   membres hors ligne regroupés et grisés.
@@ -64,6 +67,23 @@ dans `certs/`.
 
 > Le HTTPS n'est pas un luxe : les navigateurs n'autorisent le micro et la
 > caméra (appels) qu'en HTTPS ou sur `localhost`.
+
+### Appels entre réseaux différents (TURN)
+
+Sur un même réseau local, les appels se connectent directement. Si des participants
+sont sur des réseaux différents (4G, autre box), il faut parfois un relais **TURN** :
+
+```bash
+# dans .env
+WEBRTC_TURN_URL=turn:IP_DE_LA_MACHINE:3478
+TURN_PASSWORD=un-mot-de-passe
+```
+
+```bash
+docker compose --profile turn up -d
+```
+
+Ouvrir les ports `3478` (TCP/UDP) et `49160-49200` (UDP) sur la machine.
 
 ## 🛠️ Lancer en développement
 
@@ -112,6 +132,8 @@ démonstration suivants sont créés au démarrage (désactivable avec `APP_DEMO
 | `ALLOWED_ORIGINS` | `*` | Origines autorisées (CORS + WebSocket) |
 | `HTTP_PORT` / `HTTPS_PORT` | `80` / `443` | Ports exposés par nginx |
 | `TLS_EXTRA_SAN` | vide | IP/DNS à ajouter au certificat auto-signé |
+| `WEBRTC_STUN_URLS` | STUN public de Google | Serveurs STUN pour les appels |
+| `WEBRTC_TURN_URL` / `TURN_USERNAME` / `TURN_PASSWORD` | vide | Relais TURN facultatif |
 
 ## 🧪 Tests
 
@@ -140,6 +162,7 @@ Navigateur ──HTTPS──▶ nginx (frontend) ──▶ /api  ──▶ Sprin
 | `/topic/channels/{id}` | événements d'un salon (messages, réactions, saisie) |
 | `/user/queue/events` | événements personnels (serveur rejoint, expulsion, nouveau MP) |
 | `/topic/presence` | changements de présence (en ligne, inactif, statut personnalisé…) |
+| `/user/queue/calls` | signalisation WebRTC des appels (offre, réponse, candidats) |
 | `/user/queue/errors` | erreurs d'une action STOMP |
 
 Tous les événements ont la forme `{"type": "CHANNEL_CREATED", "payload": {...}}`.

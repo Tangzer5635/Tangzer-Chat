@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Outlet } from "react-router-dom";
 
+import IncomingCallModal from "../components/calls/IncomingCallModal";
 import ConnectionBanner from "../components/ConnectionBanner";
 import ServerRail from "../components/ServerRail";
 import { useDms } from "../context/dms";
@@ -32,6 +33,7 @@ export default function AppShell() {
             <ConnectionBanner />
             <ServerRail />
             <Outlet />
+            <IncomingCallModal />
         </div>
     );
 }

@@ -24,7 +24,7 @@ export interface Presence {
 
 export type MemberRole = "OWNER" | "ADMIN" | "MEMBER";
 
-export type ChannelType = "TEXT";
+export type ChannelType = "TEXT" | "VOICE" | "DM";
 
 export interface Channel {
     id: number;
@@ -159,4 +159,44 @@ export interface DmActivity {
     channelId: number;
     participants: User[];
     message: Message;
+}
+
+// -------------------------------------------------------------------- Appels
+
+export interface CallParticipant {
+    user: User;
+    /** Identifie l'onglet du participant (un utilisateur peut en avoir plusieurs). */
+    clientId: string;
+    muted: boolean;
+    deafened: boolean;
+    video: boolean;
+    screen: boolean;
+}
+
+/** Appel en cours dans un salon vocal (serverId) ou une conversation privée (serverId null). */
+export interface CallState {
+    channelId: number;
+    serverId: number | null;
+    participants: CallParticipant[];
+}
+
+export interface IncomingCall {
+    channelId: number;
+    caller: User;
+}
+
+export type SignalType = "offer" | "answer" | "candidate";
+
+export interface CallSignal {
+    channelId: number;
+    fromUserId: number;
+    toClientId: string;
+    type: SignalType;
+    data: unknown;
+}
+
+export interface IceServer {
+    urls: string[];
+    username: string | null;
+    credential: string | null;
 }

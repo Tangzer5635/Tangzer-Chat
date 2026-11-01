@@ -69,9 +69,9 @@ class ChannelServiceTest {
 
         assertThat(channel.name()).isEqualTo("jeux-vidéo");
         assertThat(channel.topic()).isEqualTo("On parle de jeux");
-        assertThat(channel.position()).isEqualTo(1);
+        assertThat(channel.position()).isEqualTo(2);
         assertThat(serverService.get(server.id(), member.getId()).channels())
-                .extracting("name").containsExactly("général", "jeux-vidéo");
+                .extracting("name").containsExactly("général", "vocal", "jeux-vidéo");
     }
 
     @Test
@@ -94,7 +94,8 @@ class ChannelServiceTest {
         ChannelDto second = channelService.create(server.id(), owner.getId(), new ChannelRequest("second", null, null));
         channelService.delete(general, owner.getId());
         assertThat(serverService.get(server.id(), owner.getId()).channels())
-                .extracting("id").containsExactly(second.id());
+                .extracting("name").containsExactly("vocal", "second");
+        assertThat(second.id()).isNotNull();
     }
 
     @Test

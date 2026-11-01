@@ -12,15 +12,28 @@ export function DmProvider({ children }: { children: ReactNode }) {
     const { user } = useAuth();
     const [state, dispatch] = useReducer(dmReducer, initialDmState);
 
-    useEffect(() => {
-        listConversations()
-            .then((conversations) => dispatch({ type: "loaded", conversations }))
-            .catch(() => dispatch({ type: "loaded", conversations: [] }));
+    const refresh = useCallback(async () => {
+        try {
+            dispatch({ type: "loaded", conversations: await listConversations() });
+        } catch {
+            dispatch({ type: "loaded", conversations: [] });
+        }
     }, []);
+
+    useEffect(() => {
+        void refresh();
+    }, [refresh]);
 
     useSubscription<RealtimeEvent>("/user/queue/events", (event) => {
         if (event.type === "DM_ACTIVITY" && user) {
             dispatch({ type: "activity", activity: event.payload as DmActivity, myUserId: user.id });
+        }
+        // Quelqu'un m'appelle dans une conversation que je n'ai pas encore : on recharge.
+        if (event.type === "INCOMING_CALL") {
+            const { channelId } = event.payload as { channelId: number };
+            if (!state.conversations.some((c) => c.channelId === channelId)) {
+                void refresh();
+            }
         }
     });
 
@@ -36,8 +49,8 @@ export function DmProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const value = useMemo<DmContextValue>(
-        () => ({ conversations: state.conversations, loaded: state.loaded, getConversation, openWith }),
-        [state.conversations, state.loaded, getConversation, openWith]
+        () => ({ conversations: state.conversations, loaded: state.loaded, getConversation, openWith, refresh }),
+        [state.conversations, state.loaded, getConversation, openWith, refresh]
     );
 
     return <DmContext.Provider value={value}>{children}</DmContext.Provider>;

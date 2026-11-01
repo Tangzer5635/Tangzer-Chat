@@ -8,6 +8,8 @@ export interface DmContextValue {
     getConversation: (channelId: number) => DmConversation | undefined;
     /** Ouvre (ou crée) la conversation avec cet utilisateur et la renvoie. */
     openWith: (userId: number) => Promise<DmConversation>;
+    /** Recharge la liste (ex. : une conversation créée par l'autre, sans message encore). */
+    refresh: () => Promise<void>;
 }
 
 export const DmContext = createContext<DmContextValue | null>(null);
