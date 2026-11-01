@@ -1,6 +1,11 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import './index.css'
+
+// Police Source Sans 3 (licence OFL), servie avec l'application : aucun appel extérieur.
+import '@fontsource-variable/source-sans-3'
+import './styles/tokens.css'
+import './styles/base.css'
+
 import App from './App.tsx'
 import { applyStoredAppearance } from './lib/theme'
 

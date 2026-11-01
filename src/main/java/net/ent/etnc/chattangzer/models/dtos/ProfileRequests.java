@@ -9,7 +9,7 @@ public final class ProfileRequests {
     /** {@code avatarId} : une image envoyée via /api/attachments, ou "" pour revenir aux initiales. */
     public record Profile(String displayName, String bio, String bannerColor, String avatarId) {}
 
-    public record Preferences(String theme, String accentColor, Integer fontSize, Boolean compact) {}
+    public record Preferences(String theme, Integer fontSize, Boolean compact) {}
 
     public record Password(String currentPassword, String newPassword) {}
 }

@@ -16,5 +16,7 @@ export default defineConfig({
     },
     test: {
         environment: "node",
+        // tokens.test.ts lit le vrai contenu de tokens.css (les autres CSS restent ignorés).
+        css: { include: [/tokens\.css/] },
     },
 });

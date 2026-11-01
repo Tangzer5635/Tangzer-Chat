@@ -1,0 +1,105 @@
+/* ============================================================
+   Base : remise à zéro, typographie, focus et préférences système.
+   Toutes les valeurs viennent de tokens.css.
+   ============================================================ */
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html, body, #root {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--text-md);
+    line-height: var(--leading-normal);
+    background: var(--bg-default);
+    color: var(--text-default);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, h5 {
+    color: var(--text-title);
+    line-height: var(--leading-tight);
+    font-weight: var(--weight-bold);
+    text-wrap: balance;
+}
+
+button, input, textarea, select {
+    font: inherit;
+    color: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+button:disabled {
+    cursor: not-allowed;
+}
+
+a {
+    color: var(--brand);
+    text-underline-offset: 3px;
+}
+
+a:hover {
+    color: var(--brand-hover);
+}
+
+code, pre, kbd {
+    font-family: var(--font-mono);
+}
+
+::selection {
+    background: var(--brand);
+    color: var(--on-brand);
+}
+
+/* Focus clavier : toujours visible, même couleur partout. */
+:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+}
+
+/* Les champs montrent le focus par leur propre contour (voir les composants). */
+:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* Barres de défilement fines et discrètes. */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-control) transparent;
+}
+
+/* Texte lu par les lecteurs d'écran mais invisible à l'écran. */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+}
+
+.spacer {
+    flex: 1;
+}
+
+/* Réglage système « réduire les animations » : on coupe tout mouvement. */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

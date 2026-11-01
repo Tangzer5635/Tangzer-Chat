@@ -1,5 +1,5 @@
-/** Couleurs des avatars par défaut. */
-const AVATAR_COLORS = ["#5865f2", "#3ba55c", "#faa61a", "#ed4245", "#eb459e", "#9b59b6", "#1abc9c", "#e67e22"];
+/** Couleurs des avatars par défaut (initiales blanches lisibles, niveau AA). */
+const AVATAR_COLORS = ["#6b2f73", "#00636b", "#9a5500", "#1c6a43", "#0b5fa5", "#a63a2b", "#4b4a9e", "#9b2f5c"];
 
 /** Couleur stable pour un identifiant (le même utilisateur garde toujours la même). */
 export function colorFor(id: number): string {

@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Au démarrage, si le serveur public « Tangzer » n'existe pas encore alors que
+ * Au démarrage, si le serveur public par défaut n'existe pas encore alors que
  * des comptes existent (base créée avant les serveurs), on le crée : le plus
  * ancien compte en devient propriétaire et tous les autres le rejoignent.
  */

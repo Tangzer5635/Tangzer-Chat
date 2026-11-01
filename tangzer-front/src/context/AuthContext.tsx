@@ -35,16 +35,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .finally(() => setLoading(false));
     }, []);
 
-    // L'apparence suit les préférences du compte (thème, accent, taille, compact).
+    // L'apparence suit les préférences du compte (thème, taille, compact).
     const theme = user?.theme;
-    const accentColor = user?.accentColor ?? null;
     const fontSize = user?.fontSize;
     const compact = user?.compact;
     useEffect(() => {
         if (theme && fontSize !== undefined && compact !== undefined) {
-            applyAppearance({ theme, accentColor, fontSize, compact });
+            applyAppearance({ theme, fontSize, compact });
         }
-    }, [theme, accentColor, fontSize, compact]);
+    }, [theme, fontSize, compact]);
 
     // Connexion temps réel tant qu'un utilisateur est connecté.
     const userId = user?.id;

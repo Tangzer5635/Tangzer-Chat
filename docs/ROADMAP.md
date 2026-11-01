@@ -1,9 +1,10 @@
-# Feuille de route Tangzer
+# Feuille de route Préau (dépôt Tangzer-Chat)
 
 Chaque phase est livrée dans sa propre branche et sa propre pull request.
 Les PR sont empilées : chacune part de la précédente et doit être fusionnée dans l'ordre.
 
-Toutes les phases sont livrées.
+Les phases 0 à 9 construisent la messagerie ; les phases 10 à 12 refont l'interface
+dans un style sobre et accessible, sous le nom **Préau**.
 
 | # | Phase | Branche |
 |---|---|---|
@@ -17,6 +18,9 @@ Toutes les phases sont livrées.
 | 7 | Appels audio (WebRTC, salons vocaux) | `claude/phase-7-appels-audio` |
 | 8 | Appels vidéo et partage d'écran | `claude/phase-8-appels-video` |
 | 9 | Personnalisation (profil, avatar, thèmes) | `claude/phase-9-personnalisation` |
+| 10 | Design Préau : variables de couleur (WCAG AA testé), police, marque, thèmes clair/sombre/appareil | `claude/phase-10-fondations-design` |
+| 11 | Composants accessibles : boutons, champs, onglets, alertes, fenêtres, menus, icônes | `claude/phase-11-composants` |
+| 12 | Écrans : en-tête, navigation nommée, fil de messages au clavier, audit d'accessibilité | `claude/phase-12-ecrans` |
 
 ## Principes
 

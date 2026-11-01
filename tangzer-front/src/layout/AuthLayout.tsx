@@ -1,22 +1,21 @@
 import type { ReactNode } from "react";
 
+import Logo from "../components/Logo";
+import { APP_NAME, APP_TAGLINE } from "../lib/brand";
+
 /** Mise en page commune aux pages de connexion et d'inscription. */
 export default function AuthLayout({ children }: { children: ReactNode }) {
     return (
         <div className="login-page">
             <div className="login-brand">
-                <img src="/favicon.jpg" alt="Tangzer" className="login-logo" />
-                <h1>Tangzer</h1>
-                <p>
-                    Tes serveurs, tes salons, tes potes.
-                    <br />
-                    En temps réel.
-                </p>
+                <Logo size={72} />
+                <h1>{APP_NAME}</h1>
+                <p>{APP_TAGLINE}</p>
             </div>
 
-            <div className="login-form-side">
+            <main className="login-form-side">
                 <div className="login-box">{children}</div>
-            </div>
+            </main>
         </div>
     );
 }

@@ -14,7 +14,6 @@ public record MeDto(
         String bannerColor,
         String bio,
         String theme,
-        String accentColor,
         int fontSize,
         boolean compact
 ) {
@@ -30,7 +29,6 @@ public record MeDto(
                 user.getBannerColor(),
                 user.getBio(),
                 user.getTheme(),
-                user.getAccentColor(),
                 user.getFontSize(),
                 user.isCompact());
     }

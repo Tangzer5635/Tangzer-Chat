@@ -50,7 +50,7 @@ public class UserController {
         return MeDto.from(userService.updateProfile(me.id(), request));
     }
 
-    /** Thème, couleur d'accent, taille du texte, mode compact. */
+    /** Thème, taille du texte, mode compact. */
     @PutMapping("/me/preferences")
     public MeDto updatePreferences(@RequestBody ProfileRequests.Preferences request, @AuthenticationPrincipal AuthUser me) {
         return MeDto.from(userService.updatePreferences(me.id(), request));

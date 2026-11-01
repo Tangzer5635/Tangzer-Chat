@@ -7,6 +7,7 @@ import { PresenceProvider } from "../context/PresenceContext";
 import { ServersProvider } from "../context/ServersContext";
 import { UnreadProvider } from "../context/UnreadContext";
 import { UsersProvider } from "../context/UsersContext";
+import { APP_NAME } from "../lib/brand";
 
 /**
  * Pages réservées aux utilisateurs connectés.
@@ -17,7 +18,7 @@ export default function ProtectedRoute() {
     const location = useLocation();
 
     if (loading) {
-        return <div className="splash">Connexion à Tangzer…</div>;
+        return <div className="splash">Connexion à {APP_NAME}…</div>;
     }
 
     if (!user) {

@@ -1,5 +1,5 @@
 /**
- * Petit client HTTP pour l'API Tangzer.
+ * Petit client HTTP pour l'API du serveur.
  *
  * - ajoute automatiquement le JWT ;
  * - transforme les erreurs {"message": "..."} du backend en ApiError ;

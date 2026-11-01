@@ -56,12 +56,9 @@ public class User {
     /** « À propos de moi ». */
     private String bio;
 
-    /** Thème de l'interface : tangzer, minuit, clair, neon, sakura, foret. */
+    /** Thème de l'interface : light, dark, ou system (selon l'appareil). */
     @Column(nullable = false)
-    private String theme = "tangzer";
-
-    /** Couleur d'accent choisie (#rrggbb), ou null pour celle du thème. */
-    private String accentColor;
+    private String theme = "system";
 
     /** Taille du texte des messages, en pixels. */
     @Column(nullable = false)

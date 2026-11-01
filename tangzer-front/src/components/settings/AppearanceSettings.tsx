@@ -1,10 +1,40 @@
 import { updatePreferences } from "../../api/users";
 import { useAuth } from "../../context/auth";
 import { useToasts } from "../../context/toasts";
-import { ACCENT_COLORS, THEMES } from "../../lib/theme";
-import type { Appearance } from "../../types/api";
+import { APP_NAME } from "../../lib/brand";
+import { FONT_SIZE_MAX, FONT_SIZE_MIN, THEMES } from "../../lib/theme";
+import type { Appearance, ThemeId } from "../../types/api";
 
-/** Thème, couleur d'accent, taille du texte, mode compact : appliqués immédiatement. */
+/** Mini-interface dessinée avec les vraies couleurs d'un mode (clair ou sombre). */
+function MiniInterface({ scheme }: { scheme: "light" | "dark" }) {
+    return (
+        <span className="theme-mini" data-scheme={scheme}>
+            <span className="theme-mini-nav" />
+            <span className="theme-mini-main">
+                <span className="theme-mini-line" />
+                <span className="theme-mini-line short" />
+                <span className="theme-mini-button" />
+            </span>
+        </span>
+    );
+}
+
+function ThemePreview({ theme }: { theme: ThemeId }) {
+    return (
+        <span className="theme-preview" aria-hidden="true">
+            {theme === "system" ? (
+                <>
+                    <MiniInterface scheme="light" />
+                    <MiniInterface scheme="dark" />
+                </>
+            ) : (
+                <MiniInterface scheme={theme} />
+            )}
+        </span>
+    );
+}
+
+/** Thème, taille du texte, mode compact : appliqués immédiatement. */
 export default function AppearanceSettings() {
     const { user, updateUser } = useAuth();
     const { pushToast } = useToasts();
@@ -26,62 +56,32 @@ export default function AppearanceSettings() {
 
     return (
         <div className="form">
-            <label>Thème</label>
-            <div className="theme-grid">
-                {THEMES.map((theme) => {
-                    const [rail, sidebar, main, accent] = theme.preview;
-                    return (
-                        <button
-                            key={theme.id}
-                            className={user.theme === theme.id ? "theme-card active" : "theme-card"}
-                            onClick={() => save({ theme: theme.id })}
-                        >
-                            <span className="theme-preview" style={{ background: main }}>
-                                <span style={{ background: rail }} />
-                                <span style={{ background: sidebar }} />
-                                <i style={{ background: accent }} />
-                            </span>
+            <fieldset className="theme-choices">
+                <legend>Thème</legend>
+                <div className="theme-grid">
+                    {THEMES.map((theme) => (
+                        <label key={theme.id} className={user.theme === theme.id ? "theme-card active" : "theme-card"}>
+                            <input
+                                type="radio"
+                                name="theme"
+                                value={theme.id}
+                                checked={user.theme === theme.id}
+                                onChange={() => save({ theme: theme.id })}
+                            />
+                            <ThemePreview theme={theme.id} />
                             <strong>{theme.label}</strong>
-                        </button>
-                    );
-                })}
-            </div>
-
-            <label>Couleur d'accent</label>
-            <div className="color-grid">
-                <button
-                    type="button"
-                    className={user.accentColor === null ? "color-choice active theme-default" : "color-choice theme-default"}
-                    onClick={() => save({ accentColor: null })}
-                    title="Celle du thème"
-                >
-                    ↺
-                </button>
-                {ACCENT_COLORS.map((color) => (
-                    <button
-                        type="button"
-                        key={color}
-                        className={user.accentColor === color ? "color-choice active" : "color-choice"}
-                        style={{ background: color }}
-                        onClick={() => save({ accentColor: color })}
-                        aria-label={`Accent ${color}`}
-                    />
-                ))}
-                <input
-                    type="color"
-                    className="color-input"
-                    value={user.accentColor ?? "#5865f2"}
-                    onChange={(e) => save({ accentColor: e.target.value })}
-                    title="Couleur personnalisée"
-                />
-            </div>
+                            <small>{theme.description}</small>
+                        </label>
+                    ))}
+                </div>
+            </fieldset>
 
             <label htmlFor="font-size">Taille du texte des messages : {user.fontSize} px</label>
             <input
                 id="font-size"
                 type="range"
-                min={12}
-                max={20}
+                min={FONT_SIZE_MIN}
+                max={FONT_SIZE_MAX}
                 step={1}
                 value={user.fontSize}
                 onChange={(e) => save({ fontSize: Number(e.target.value) })}
@@ -95,14 +95,14 @@ export default function AppearanceSettings() {
                 </span>
             </label>
 
-            <div className="appearance-sample">
+            <div className="appearance-sample" aria-label="Aperçu d'un message">
                 <div className="message with-header">
                     <div className="message-row">
                         <div className="message-gutter">
-                            <span className="avatar" style={{ width: 40, height: 40, background: "var(--accent)", color: "var(--accent-text)" }}>T</span>
+                            <span className="avatar" style={{ width: 40, height: 40, background: "var(--brand)", color: "var(--on-brand)" }}>P</span>
                         </div>
                         <div className="message-body">
-                            <div className="message-meta"><strong>Tangzer</strong><time>12:34</time></div>
+                            <div className="message-meta"><strong>{APP_NAME}</strong><time>12:34</time></div>
                             <div className="message-content">
                                 Voilà à quoi ressemblent les messages. <span className="mention">@{user.username}</span> 👋
                             </div>

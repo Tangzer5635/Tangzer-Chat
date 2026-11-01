@@ -1,0 +1,116 @@
+/* ============================================================
+   PRÉAU — variables de design
+   C'est le SEUL fichier qui contient des couleurs. Chaque couleur
+   est écrite une fois, sous la forme light-dark(clair, sombre) :
+   le navigateur choisit selon le thème (voir color-scheme plus bas).
+   Les associations de couleurs sont vérifiées par tokens.test.ts
+   (contrastes WCAG AA).
+   ============================================================ */
+
+:root {
+    /* ---------- Fonds ---------- */
+    --bg-default: light-dark(#ffffff, #161616);   /* fil de messages, fenêtres */
+    --bg-alt: light-dark(#f6f6f6, #1e1e1e);       /* navigation, colonnes latérales */
+    --bg-contrast: light-dark(#eeeeee, #2a2a2a);  /* champs de saisie, blocs de code */
+    --bg-hover: light-dark(#eeeeee, #2a2a2a);     /* survol d'une ligne cliquable */
+    --bg-raised: light-dark(#ffffff, #242424);    /* menus, cartes flottantes */
+    --bg-overlay: light-dark(rgba(22, 22, 22, 0.6), rgba(0, 0, 0, 0.7));
+
+    /* ---------- Textes ---------- */
+    --text-title: light-dark(#161616, #f5f5f5);   /* titres, noms */
+    --text-default: light-dark(#3a3a3a, #dddddd); /* texte courant */
+    --text-mention: light-dark(#666666, #a6a6a6); /* heures, aides, informations secondaires */
+    --text-disabled: light-dark(#929292, #6a6a6a);
+
+    /* ---------- Bordures ---------- */
+    --border-default: light-dark(#dddddd, #353535); /* filets de séparation */
+    --border-control: light-dark(#757575, #8c8c8c); /* contour des champs (3:1 minimum) */
+    --border-strong: light-dark(#161616, #f5f5f5);
+
+    /* ---------- Marque : prune et ocre ---------- */
+    --brand: light-dark(#6b2f73, #d6a0dc);
+    --brand-hover: light-dark(#521f59, #e5c0e9);
+    --brand-subtle: light-dark(#f4e9f5, #36203a);   /* élément sélectionné */
+    --on-brand: light-dark(#ffffff, #161616);       /* texte sur --brand */
+    --accent: light-dark(#9a5500, #eaa64a);         /* mentions, compteurs */
+    --accent-subtle: light-dark(#fbf0e3, #33240f);  /* message qui me mentionne */
+    --on-accent: light-dark(#ffffff, #161616);
+    --focus: light-dark(#6b2f73, #d6a0dc);
+
+    /* ---------- États ---------- */
+    --info: light-dark(#0b5fa5, #7db7ec);
+    --info-bg: light-dark(#e8f1fa, #13263a);
+    --success: light-dark(#1d7a3e, #6cc68a);
+    --success-bg: light-dark(#e7f4ea, #12291b);
+    --warning: light-dark(#a14d00, #f0a35c);
+    --warning-bg: light-dark(#fff3e3, #33230f);
+    --error: light-dark(#c4161c, #ff8c85);
+    --error-hover: light-dark(#a01217, #ffaaa4);
+    --error-bg: light-dark(#fdeceb, #3a1716);
+    --on-status: light-dark(#ffffff, #161616);       /* texte sur un fond d'état plein */
+
+    /* ---------- Présence (toujours accompagnée d'une forme ou d'un texte) ---------- */
+    --presence-online: light-dark(#1d8a48, #4cc27a);
+    --presence-idle: light-dark(#b47500, #e0a030);
+    --presence-dnd: light-dark(#c4161c, #ff6b63);
+    --presence-offline: light-dark(#757575, #8c8c8c);
+
+    /* ---------- Vidéo et visionneuse : toujours sombres ---------- */
+    --media-bg: #000000;
+    --on-media: #ffffff;
+    --media-overlay: rgba(0, 0, 0, 0.6);     /* nom affiché sur une vidéo */
+    --media-backdrop: rgba(0, 0, 0, 0.88);   /* fond de la visionneuse photo */
+    --media-control: rgba(255, 255, 255, 0.14);
+    --media-control-hover: rgba(255, 255, 255, 0.26);
+
+    /* ---------- Ombres : réservées aux éléments flottants ---------- */
+    --shadow-raised:
+        0 1px 3px light-dark(rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.4)),
+        0 8px 24px light-dark(rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.5));
+
+    /* ---------- Typographie ---------- */
+    --font-sans: "Source Sans 3 Variable", "Source Sans 3", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --font-mono: ui-monospace, "Cascadia Code", Consolas, "Liberation Mono", monospace;
+    --text-xs: 0.75rem;    /* 12 px : étiquettes */
+    --text-sm: 0.875rem;   /* 14 px : heures, aides */
+    --text-md: 1rem;       /* 16 px : texte courant */
+    --text-lg: 1.25rem;    /* 20 px : nom du salon */
+    --text-xl: 1.5rem;     /* 24 px : titres de section */
+    --text-2xl: 2rem;      /* 32 px : titres de page */
+    --leading-tight: 1.25;
+    --leading-normal: 1.5;
+    --weight-regular: 400;
+    --weight-semibold: 600;
+    --weight-bold: 700;
+    /* Taille des messages choisie dans les paramètres (16 px = 1). */
+    --font-scale: 1;
+
+    /* ---------- Espacements : grille de 4 px ---------- */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-12: 48px;
+    --space-16: 64px;
+
+    /* ---------- Formes ---------- */
+    --radius-control: 0;     /* boutons, champs, cartes, fenêtres */
+    --radius-sm: 2px;        /* code, étiquettes */
+    --radius-pill: 999px;    /* compteurs, réactions */
+    --control-height: 2.5rem;  /* 40 px */
+    --target-min: 2.75rem;     /* 44 px : zone cliquable confortable */
+    --duration-fast: 120ms;
+
+    /* « Système » par défaut : suit le réglage de l'appareil. */
+    color-scheme: light dark;
+}
+
+:root[data-theme="light"] {
+    color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+    color-scheme: dark;
+}

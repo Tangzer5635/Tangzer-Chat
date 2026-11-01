@@ -193,7 +193,7 @@ class ServerServiceTest {
         serverService.joinDefaultServer(alice);
 
         ServerDto seenByAlice = serverService.listForUser(alice.getId()).getFirst();
-        assertThat(seenByAlice.name()).isEqualTo("Tangzer");
+        assertThat(seenByAlice.name()).isEqualTo("Préau");
         assertThat(seenByAlice.isDefault()).isTrue();
         assertThat(seenByAlice.isPublic()).isTrue();
         assertThat(seenByAlice.myRole()).isEqualTo(MemberRole.MEMBER);

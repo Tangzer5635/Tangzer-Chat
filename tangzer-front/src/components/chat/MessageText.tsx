@@ -46,7 +46,7 @@ function renderNodes(nodes: MdNode[], myUsername: string): ReactNode[] {
     });
 }
 
-/** Liens d'invitation Tangzer présents dans le message (pour afficher une carte). */
+/** Liens d'invitation présents dans le message (pour afficher une carte). */
 function inviteCodes(nodes: MdNode[]): string[] {
     const codes: string[] = [];
     for (const node of nodes) {

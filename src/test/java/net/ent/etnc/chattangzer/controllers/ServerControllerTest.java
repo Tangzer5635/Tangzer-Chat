@@ -41,7 +41,7 @@ class ServerControllerTest {
 
         mockMvc.perform(get("/api/servers").header("Authorization", token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value("Tangzer"))
+                .andExpect(jsonPath("$[0].name").value("Préau"))
                 .andExpect(jsonPath("$[0].isDefault").value(true))
                 .andExpect(jsonPath("$[0].isPublic").value(true))
                 .andExpect(jsonPath("$[0].channels[0].name").value("général"));

@@ -36,12 +36,13 @@ import java.util.regex.Pattern;
 @Transactional
 public class ServerService {
 
-    /** Couleurs proposées pour l'icône d'un serveur. */
+    /** Couleurs proposées pour l'icône d'un serveur (initiales blanches lisibles). */
     public static final List<String> COLORS = List.of(
-            "#5865f2", "#eb459e", "#3ba55c", "#faa61a", "#ed4245",
-            "#9b59b6", "#1abc9c", "#e67e22", "#3498db", "#e91e63");
+            "#6b2f73", "#9a5500", "#00636b", "#1c6a43", "#0b5fa5",
+            "#a63a2b", "#4b4a9e", "#4a5a66", "#9b2f5c", "#7a4a24");
 
-    static final String DEFAULT_SERVER_NAME = "Tangzer";
+    /** Nom du serveur public créé sur une nouvelle installation (une base existante garde le sien). */
+    static final String DEFAULT_SERVER_NAME = "Préau";
     static final List<String> DEFAULT_SERVER_CHANNELS =
             List.of("général", "dev", "wb47", "groupe-fond-à-droite(gauche)🤭😜");
 
@@ -167,7 +168,7 @@ public class ServerService {
             throw ApiException.forbidden("Seul le propriétaire peut supprimer le serveur");
         }
         if (membership.getServer().isDefaultServer()) {
-            throw ApiException.badRequest("Le serveur principal de Tangzer ne peut pas être supprimé");
+            throw ApiException.badRequest("Le serveur public principal ne peut pas être supprimé");
         }
 
         // On supprime d'abord tout ce qui dépend du serveur.
@@ -261,7 +262,7 @@ public class ServerService {
     // ------------------------------------------------------- Serveur par défaut
 
     /**
-     * Chaque nouvel inscrit rejoint le serveur public « Tangzer ».
+     * Chaque nouvel inscrit rejoint le serveur public par défaut.
      * S'il n'existe pas encore, le premier inscrit le crée et en devient propriétaire.
      */
     public void joinDefaultServer(User user) {
@@ -271,9 +272,8 @@ public class ServerService {
     }
 
     private void createDefaultServer(User owner) {
-        Server server = new Server(DEFAULT_SERVER_NAME, "#5865f2", owner);
-        server.setIcon("⚡");
-        server.setDescription("Le serveur public de Tangzer : tout le monde est le bienvenu !");
+        Server server = new Server(DEFAULT_SERVER_NAME, "#6b2f73", owner);
+        server.setDescription("Le serveur public de Préau, ouvert à toutes les personnes inscrites.");
         server.setPublicServer(true);
         server.setDefaultServer(true);
         serverRepository.save(server);

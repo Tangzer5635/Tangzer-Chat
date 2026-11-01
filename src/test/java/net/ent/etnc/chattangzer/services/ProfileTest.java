@@ -120,18 +120,17 @@ class ProfileTest {
     @Test
     void preferencesAreValidated() {
         User user = userService.updatePreferences(alice.getId(),
-                new ProfileRequests.Preferences("clair", "#57F287", 18, true));
+                new ProfileRequests.Preferences("dark", 18, true));
 
-        assertThat(user.getTheme()).isEqualTo("clair");
-        assertThat(user.getAccentColor()).isEqualTo("#57f287");
+        assertThat(user.getTheme()).isEqualTo("dark");
         assertThat(user.getFontSize()).isEqualTo(18);
         assertThat(user.isCompact()).isTrue();
 
         assertThatThrownBy(() -> userService.updatePreferences(alice.getId(),
-                new ProfileRequests.Preferences("fluo", null, null, null)))
+                new ProfileRequests.Preferences("neon", null, null)))
                 .hasMessageContaining("Thème");
         assertThatThrownBy(() -> userService.updatePreferences(alice.getId(),
-                new ProfileRequests.Preferences(null, null, 40, null)))
+                new ProfileRequests.Preferences(null, 40, null)))
                 .isInstanceOf(ApiException.class);
     }
 
