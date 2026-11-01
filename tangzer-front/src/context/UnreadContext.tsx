@@ -51,7 +51,8 @@ export function UnreadProvider({ children }: { children: ReactNode }) {
         const mentioned = activity.mentions.includes(user.username);
         dispatch({ type: "activity", channelId: activity.channelId, mentioned });
 
-        if (mentioned) {
+        // « Ne pas déranger » : les compteurs bougent, mais pas de notification.
+        if (mentioned && user.status !== "DND") {
             const channel = server.channels.find((c) => c.id === activity.channelId);
             pushToast(`🔔 Tu as été mentionné dans #${channel?.name ?? "?"} (${server.name})`, {
                 link: `/app/servers/${server.id}/channels/${activity.channelId}`,
@@ -70,6 +71,9 @@ export function UnreadProvider({ children }: { children: ReactNode }) {
             return;
         }
         dispatch({ type: "activity", channelId, mentioned: false });
+        if (user.status === "DND") {
+            return;
+        }
         const preview = toPlainText(message.content) || "📷 Photo";
         pushToast(`💬 ${message.author.displayName} : ${preview.length > 60 ? `${preview.slice(0, 60)}…` : preview}`, {
             link: `/app/dm/${channelId}`,

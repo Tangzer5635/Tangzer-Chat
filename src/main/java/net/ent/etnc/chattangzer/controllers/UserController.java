@@ -1,11 +1,15 @@
 package net.ent.etnc.chattangzer.controllers;
 
+import net.ent.etnc.chattangzer.models.dtos.MeDto;
 import net.ent.etnc.chattangzer.models.dtos.UserDto;
+import net.ent.etnc.chattangzer.models.entities.UserStatus;
 import net.ent.etnc.chattangzer.security.AuthUser;
 import net.ent.etnc.chattangzer.services.UserService;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,9 +28,16 @@ public class UserController {
 
     /** Utilisateur connecté : permet au front de restaurer la session au rechargement. */
     @GetMapping("/me")
-    public UserDto me(@AuthenticationPrincipal AuthUser me) {
-        return UserDto.from(userService.getById(me.id()));
+    public MeDto me(@AuthenticationPrincipal AuthUser me) {
+        return MeDto.from(userService.getById(me.id()));
     }
+
+    @PutMapping("/me/status")
+    public MeDto updateStatus(@RequestBody StatusRequest request, @AuthenticationPrincipal AuthUser me) {
+        return MeDto.from(userService.updateStatus(me.id(), request.status(), request.customStatus()));
+    }
+
+    public record StatusRequest(UserStatus status, String customStatus) {}
 
     /** Recherche d'utilisateurs (?search=), pour démarrer une conversation privée. */
     @GetMapping

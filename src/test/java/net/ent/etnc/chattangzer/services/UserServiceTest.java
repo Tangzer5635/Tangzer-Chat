@@ -2,6 +2,7 @@ package net.ent.etnc.chattangzer.services;
 
 import net.ent.etnc.chattangzer.exceptions.ApiException;
 import net.ent.etnc.chattangzer.models.entities.User;
+import net.ent.etnc.chattangzer.models.entities.UserStatus;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,5 +84,20 @@ class UserServiceTest {
         userService.register("tanguy", null, "secret123");
 
         assertThat(userService.getByUsername("TANGUY").getUsername()).isEqualTo("tanguy");
+    }
+
+    @Test
+    void statusCanBeChangedButNeverToOffline() {
+        User user = userService.register("statut", null, "secret123");
+
+        User updated = userService.updateStatus(user.getId(), UserStatus.DND, "  🎧 Concentré  ");
+        assertThat(updated.getStatus()).isEqualTo(UserStatus.DND);
+        assertThat(updated.getCustomStatus()).isEqualTo("🎧 Concentré");
+
+        assertThat(userService.updateStatus(user.getId(), UserStatus.ONLINE, "").getCustomStatus()).isNull();
+        assertThatThrownBy(() -> userService.updateStatus(user.getId(), UserStatus.OFFLINE, null))
+                .isInstanceOf(ApiException.class);
+        assertThatThrownBy(() -> userService.updateStatus(user.getId(), UserStatus.ONLINE, "x".repeat(81)))
+                .isInstanceOf(ApiException.class);
     }
 }

@@ -4,8 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { changeMemberRole, kickMember, listMembers } from "../api/servers";
 import { useAuth } from "../context/auth";
 import { useDms } from "../context/dms";
+import { usePresence } from "../context/presence";
 import { useToasts } from "../context/toasts";
-import { applyMemberEvent, groupMembersByRole } from "../lib/members";
+import { applyMemberEvent } from "../lib/members";
+import { groupMembersByPresence, STATUS_LABELS } from "../lib/presence";
 import { canChangeRole, canKick, ROLE_LABELS } from "../lib/permissions";
 import { useSubscription } from "../realtime/hooks";
 import type { Member, RealtimeEvent, Server } from "../types/api";
@@ -17,6 +19,7 @@ export default function MemberList({ server }: { server: Server }) {
     const navigate = useNavigate();
     const { pushToast } = useToasts();
     const { openWith } = useDms();
+    const { statusOf, customStatusOf } = usePresence();
 
     const [members, setMembers] = useState<Member[]>([]);
     const [selected, setSelected] = useState<number | null>(null);
@@ -33,7 +36,7 @@ export default function MemberList({ server }: { server: Server }) {
         setMembers((current) => applyMemberEvent(current, event));
     });
 
-    const groups = groupMembersByRole(members);
+    const groups = groupMembersByPresence(members, statusOf);
     const selectedMember = members.find((m) => m.user.id === selected);
 
     const run = async (action: () => Promise<unknown>, success: string) => {
@@ -49,7 +52,7 @@ export default function MemberList({ server }: { server: Server }) {
     return (
         <aside className="member-list" aria-label="Membres">
             {groups.map((group) => (
-                <section key={group.role}>
+                <section key={group.offline ? "offline" : group.role} className={group.offline ? "offline" : undefined}>
                     <h3 className="member-group">{group.label} — {group.members.length}</h3>
                     {group.members.map((member) => (
                         <button
@@ -57,8 +60,13 @@ export default function MemberList({ server }: { server: Server }) {
                             className={selected === member.user.id ? "member-item active" : "member-item"}
                             onClick={() => setSelected(selected === member.user.id ? null : member.user.id)}
                         >
-                            <Avatar user={member.user} size={32} />
-                            <span className="member-name">{member.user.displayName}</span>
+                            <Avatar user={member.user} size={32} status={statusOf(member.user.id)} />
+                            <span className="member-text">
+                                <span className="member-name">{member.user.displayName}</span>
+                                {customStatusOf(member.user.id) && (
+                                    <span className="member-custom-status">{customStatusOf(member.user.id)}</span>
+                                )}
+                            </span>
                             {member.role === "OWNER" && <span className="member-crown" title="Propriétaire">👑</span>}
                         </button>
                     ))}
@@ -69,9 +77,12 @@ export default function MemberList({ server }: { server: Server }) {
                 <div className="member-card">
                     <div className="member-card-banner" style={{ background: server.color }} />
                     <div className="member-card-body">
-                        <Avatar user={selectedMember.user} size={64} />
+                        <Avatar user={selectedMember.user} size={64} status={statusOf(selectedMember.user.id)} />
                         <h4>{selectedMember.user.displayName}</h4>
-                        <p className="member-card-username">@{selectedMember.user.username}</p>
+                        <p className="member-card-username">@{selectedMember.user.username} · {STATUS_LABELS[statusOf(selectedMember.user.id)]}</p>
+                        {customStatusOf(selectedMember.user.id) && (
+                            <p className="member-card-custom">{customStatusOf(selectedMember.user.id)}</p>
+                        )}
                         <span className={`role-badge role-${selectedMember.role.toLowerCase()}`}>
                             {ROLE_LABELS[selectedMember.role]}
                         </span>

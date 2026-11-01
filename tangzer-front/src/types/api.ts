@@ -6,6 +6,22 @@ export interface User {
     displayName: string;
 }
 
+/** Statut : les quatre premiers se choisissent, OFFLINE est calculé par le serveur. */
+export type UserStatus = "ONLINE" | "IDLE" | "DND" | "INVISIBLE" | "OFFLINE";
+
+/** L'utilisateur connecté, avec ses préférences. */
+export interface Me extends User {
+    status: UserStatus;
+    customStatus: string | null;
+}
+
+/** Présence d'un utilisateur telle que les autres la voient. */
+export interface Presence {
+    userId: number;
+    status: UserStatus;
+    customStatus: string | null;
+}
+
 export type MemberRole = "OWNER" | "ADMIN" | "MEMBER";
 
 export type ChannelType = "TEXT";

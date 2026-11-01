@@ -1,9 +1,9 @@
 import { api } from "./http";
-import type { User } from "../types/api";
+import type { Me } from "../types/api";
 
 export interface AuthResponse {
     token: string;
-    user: User;
+    user: Me;
 }
 
 export function login(username: string, password: string) {
@@ -21,5 +21,5 @@ export function register(username: string, displayName: string, password: string
 }
 
 export function fetchMe() {
-    return api<User>("/api/users/me");
+    return api<Me>("/api/users/me");
 }

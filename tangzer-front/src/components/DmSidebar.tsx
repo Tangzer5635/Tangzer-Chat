@@ -3,6 +3,7 @@ import { NavLink } from "react-router-dom";
 
 import { useAuth } from "../context/auth";
 import { useDms } from "../context/dms";
+import { usePresence } from "../context/presence";
 import { useUnread } from "../context/unread";
 import { toPlainText } from "../lib/markdown";
 import Avatar from "./Avatar";
@@ -14,6 +15,7 @@ export default function DmSidebar() {
     const { user } = useAuth();
     const { conversations } = useDms();
     const { counts } = useUnread();
+    const { statusOf } = usePresence();
     const [creating, setCreating] = useState(false);
 
     return (
@@ -36,7 +38,7 @@ export default function DmSidebar() {
                             to={`/app/dm/${conversation.channelId}`}
                             className={({ isActive }) => ["dm-item", isActive ? "active" : "", unread ? "unread" : ""].join(" ")}
                         >
-                            <Avatar user={conversation.otherUser} size={32} />
+                            <Avatar user={conversation.otherUser} size={32} status={statusOf(conversation.otherUser.id)} />
                             <span className="dm-item-text">
                                 <strong>{conversation.otherUser.displayName}</strong>
                                 <small>
