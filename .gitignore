@@ -9,3 +9,6 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+
+# Certificats HTTPS générés par nginx (Docker)
+certs/

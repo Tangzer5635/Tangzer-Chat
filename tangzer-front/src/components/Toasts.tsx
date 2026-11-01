@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 
-import { useChatContext } from "../context/ChatContext";
+import { useChatContext } from "../context/chatContext";
 
 export default function Toasts() {
 
@@ -23,7 +23,7 @@ export default function Toasts() {
                             : "toast"
                     }
                     onClick={() => handleClick(n)}
-                ><span>{n.text}</span>{n.link}
+                ><span>{n.text}</span>
                 </div>
 
             ))}

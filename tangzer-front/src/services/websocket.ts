@@ -1,12 +1,11 @@
 import { Client, type IMessage } from "@stomp/stompjs";
-import SockJS from "sockjs-client";
 
 import type {
     ChatMessage,
     MessageStatus,
     TypingStatus,
 } from "../types/ChatMessage";
-import {v4} from "uuid";
+import { randomId } from "../lib/id";
 
 let messageHandler:
     ((msg: ChatMessage) => void) | null = null;
@@ -36,13 +35,16 @@ function normalizeMessage(msg: ChatMessage): ChatMessage {
     };
 }
 
+// Le WebSocket est servi sur la même origine que le front (proxy Vite ou nginx).
+function webSocketUrl(): string {
+    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+    return `${protocol}://${window.location.host}/ws`;
+}
+
 const client = new Client({
     connectHeaders: {},
 
-    webSocketFactory: () => {
-        const token = localStorage.getItem("jwt");
-        return new SockJS(`http://172.16.64.192:8080/ws?token=${token}`);
-    },
+    brokerURL: webSocketUrl(),
 
     reconnectDelay: 5000,
 
@@ -178,7 +180,7 @@ export function sendMessage(content: string) {
         destination: "/app/chat.send",
         body: JSON.stringify({
             content,
-            messageId: v4()
+            messageId: randomId()
         }),
     });
 }

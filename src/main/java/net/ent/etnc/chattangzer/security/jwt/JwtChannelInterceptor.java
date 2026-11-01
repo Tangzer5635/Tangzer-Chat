@@ -11,6 +11,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 
+/**
+ * Authentifie la connexion STOMP : le client envoie
+ * "Authorization: Bearer xxx" dans les headers de la trame CONNECT.
+ */
 @Component
 public class JwtChannelInterceptor implements ChannelInterceptor {
 
@@ -24,31 +28,30 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
-        try {
-            StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-            if (accessor == null) {return message;}
-            if (!StompCommand.CONNECT.equals(accessor.getCommand()
-            )) {return message;}
+        StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
-            String authorization = accessor.getFirstNativeHeader("Authorization");
-            if (authorization == null || !authorization.startsWith("Bearer ")) {
-                throw new IllegalArgumentException("Token JWT manquant");
-            }
-            String token = authorization.substring(7);
-            if (!jwtUtils.validateJwtToken(token)) {throw new IllegalArgumentException("Token JWT invalide");}
-            String username = jwtUtils.getUsernameFromJwtToken(token);
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(
-                            userDetails,
-                            null,
-                            userDetails.getAuthorities()
-                    );
-
-            accessor.setUser(authentication);
+        if (accessor == null || !StompCommand.CONNECT.equals(accessor.getCommand())) {
             return message;
-        } catch (Exception e) {
-            throw e;
         }
+
+        String authorization = accessor.getFirstNativeHeader("Authorization");
+        if (authorization == null || !authorization.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Token JWT manquant");
+        }
+
+        String token = authorization.substring(7).trim();
+        if (!jwtUtils.validateJwtToken(token)) {
+            throw new IllegalArgumentException("Token JWT invalide");
+        }
+
+        String username = jwtUtils.getUsernameFromJwtToken(token);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+        accessor.setUser(new UsernamePasswordAuthenticationToken(
+                userDetails,
+                null,
+                userDetails.getAuthorities()
+        ));
+        return message;
     }
 }

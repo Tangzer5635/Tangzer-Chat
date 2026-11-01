@@ -4,11 +4,11 @@ import { useSearchParams } from "react-router-dom";
 
 import {sendPrivateMessage, sendReadReceipt, sendTyping,} from "../services/websocket";
 
-import { useChatContext } from "../context/ChatContext";
+import { useChatContext } from "../context/chatContext";
 
 import type { ChatMessage } from "../types/ChatMessage";
 
-import  {v4 as uuidv4} from 'uuid';
+import { randomId } from "../lib/id";
 
 const USERS = ["admin", "user", "tanguy", "pigloo"];
 
@@ -23,13 +23,10 @@ export default function DirectMessages() {
         typingUsers,
     } = useChatContext();
 
-    const [searchParams, setSearchParams] =
-        useSearchParams();
-
-    const fromParam = searchParams.get("from");
+    const [searchParams] = useSearchParams();
 
     const [recipient, setRecipient] =
-        useState<string | null>(fromParam);
+        useState<string | null>(searchParams.get("from"));
 
     const [content, setContent] = useState("");
 
@@ -48,13 +45,6 @@ export default function DirectMessages() {
         privateMessages,
         markDmRead,
     ]);
-
-    useEffect(() => {
-        if (fromParam) {
-            setRecipient(fromParam);
-            setSearchParams({}, { replace: true });
-        }
-    }, [fromParam, setSearchParams]);
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({
@@ -117,7 +107,7 @@ export default function DirectMessages() {
         }
 
         const text = content.trim();
-        const messageId = uuidv4();
+        const messageId = randomId();
 
         sendPrivateMessage(
             recipient,

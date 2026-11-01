@@ -2,7 +2,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 
 import { disconnectWebSocket } from "../services/websocket";
 import { logout } from "../services/auth";
-import { useChatContext } from "../context/ChatContext";
+import { useChatContext } from "../context/chatContext";
 
 export default function Navbar() {
 

@@ -8,7 +8,7 @@ export async function login(
 ): Promise<string> {
 
     const response = await fetch(
-        "http://172.16.64.192:8080/auth/login/",
+        "/api/auth/login",
         {
             method: "POST",
             headers: {
