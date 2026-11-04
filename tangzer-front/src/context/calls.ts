@@ -26,6 +26,8 @@ export interface CallContextValue {
     incoming: IncomingCall | null;
     /** Les appels ont besoin du micro, donc d'une page en HTTPS (ou localhost). */
     supported: boolean;
+    /** Mon micro fonctionne dans cet appel ; sinon je suis en écoute seule. */
+    hasMic: boolean;
     join: (channelId: number) => Promise<void>;
     leave: () => void;
     toggleMute: () => void;

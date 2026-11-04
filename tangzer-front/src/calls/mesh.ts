@@ -47,7 +47,13 @@ export class Mesh {
     async connectTo(userId: number) {
         const peer = this.createPeer(userId, true);
         const { connection } = peer;
-        this.localStream.getAudioTracks().forEach((track) => connection.addTrack(track, this.localStream));
+        const audioTracks = this.localStream.getAudioTracks();
+        if (audioTracks.length > 0) {
+            audioTracks.forEach((track) => connection.addTrack(track, this.localStream));
+        } else {
+            // Sans micro : je ne parle pas, mais je veux entendre les autres.
+            connection.addTransceiver("audio", { direction: "recvonly" });
+        }
         const video = connection.addTransceiver("video", { direction: "sendrecv", streams: [this.localStream] });
         await video.sender.replaceTrack(this.videoTrack);
         await this.sendOffer(userId, peer);

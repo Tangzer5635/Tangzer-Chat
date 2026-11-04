@@ -8,7 +8,7 @@ import { useCalls } from "../../context/calls";
  */
 export default function CallControls({ large = false }: { large?: boolean }) {
     const {
-        muted, deafened, video, screen, screenShareSupported,
+        muted, deafened, video, screen, screenShareSupported, hasMic,
         toggleMute, toggleDeafen, toggleCamera, toggleScreen, leave,
     } = useCalls();
     const size = large ? "call-button large" : "call-button";
@@ -17,9 +17,10 @@ export default function CallControls({ large = false }: { large?: boolean }) {
     return (
         <div className="call-controls" role="group" aria-label="Contrôles de l'appel">
             <button
-                className={muted ? `${size} off` : size}
+                className={muted || !hasMic ? `${size} off` : size}
                 onClick={toggleMute}
-                title={muted ? "Réactiver le micro" : "Couper le micro"}
+                disabled={!hasMic}
+                title={!hasMic ? "Aucun micro : écoute seule" : muted ? "Réactiver le micro" : "Couper le micro"}
                 aria-label="Couper le micro"
                 aria-pressed={muted}
             >

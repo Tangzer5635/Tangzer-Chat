@@ -4,6 +4,7 @@ import { fetchCalls, fetchIceServers } from "../api/calls";
 import { playJoinSound, playLeaveSound, SpeakingDetector, startRingtone } from "../calls/audio";
 import { applyCallState, departedPeers } from "../calls/callsState";
 import { Mesh } from "../calls/mesh";
+import { INSECURE_LISTEN_ONLY, listenOnlyReason } from "../calls/micErrors";
 import { pickVideoTrack } from "../calls/video";
 import { deviceConstraint, loadDevicePrefs } from "../lib/devicePrefs";
 import { randomId } from "../lib/id";
@@ -61,6 +62,8 @@ export function CallProvider({ children }: { children: ReactNode }) {
     const [video, setVideo] = useState(false);
     const [screen, setScreen] = useState(false);
     const [localVideo, setLocalVideo] = useState<MediaStream | null>(null);
+    /** Mon micro fonctionne dans cet appel ; sinon je suis en écoute seule. */
+    const [hasMic, setHasMic] = useState(true);
 
     const meshRef = useRef<Mesh | null>(null);
     const localStreamRef = useRef<MediaStream | null>(null);
@@ -69,6 +72,8 @@ export function CallProvider({ children }: { children: ReactNode }) {
     const currentRef = useRef<CurrentCall | null>(null);
     /** Le serveur a confirmé notre arrivée dans l'appel. */
     const confirmedRef = useRef(false);
+    /** Je rejoins sans micro : il faudra le dire au serveur une fois l'arrivée confirmée. */
+    const noMicRef = useRef(false);
     const cameraTrackRef = useRef<MediaStreamTrack | null>(null);
     const screenTrackRef = useRef<MediaStreamTrack | null>(null);
 
@@ -94,11 +99,13 @@ export function CallProvider({ children }: { children: ReactNode }) {
         setLocalVideo(null);
         currentRef.current = null;
         confirmedRef.current = false;
+        noMicRef.current = false;
         setCurrent(null);
         setRemoteStreams({});
         setSpeaking(new Set());
         setMuted(false);
         setDeafened(false);
+        setHasMic(true);
     }, []);
 
     const leave = useCallback(() => {
@@ -132,8 +139,19 @@ export function CallProvider({ children }: { children: ReactNode }) {
             const audio = { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
             const microphone = deviceConstraint(loadDevicePrefs().microphoneId);
             // Le micro choisi dans les paramètres, sinon (débranché ?) celui par défaut.
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: { ...audio, ...microphone } })
-                .catch(() => navigator.mediaDevices.getUserMedia({ audio }));
+            // Sans micro (absent, refusé, page en HTTP) : on rejoint quand même, en écoute seule.
+            let micStream: MediaStream | null = null;
+            let micProblem: unknown = null;
+            if (supported) {
+                try {
+                    micStream = await navigator.mediaDevices.getUserMedia({ audio: { ...audio, ...microphone } })
+                        .catch(() => navigator.mediaDevices.getUserMedia({ audio }));
+                } catch (err) {
+                    micProblem = err;
+                }
+            }
+            const hasMicrophone = micStream !== null;
+            const stream = micStream ?? new MediaStream();
             iceServersRef.current ??= (await fetchIceServers()).map((server) => ({
                 urls: server.urls,
                 username: server.username ?? undefined,
@@ -144,6 +162,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
             detector.watch(user.id, stream);
             detectorRef.current = detector;
             localStreamRef.current = stream;
+            setHasMic(hasMicrophone);
 
             meshRef.current = new Mesh(stream, iceServersRef.current, {
                 sendSignal: (toUserId, type, data) => publish("/app/calls/signal", { channelId, toUserId, type, data }),
@@ -164,14 +183,16 @@ export function CallProvider({ children }: { children: ReactNode }) {
             currentRef.current = { channelId, serverId: null };
             setCurrent(currentRef.current);
             setIncoming((ringing) => (ringing?.channelId === channelId ? null : ringing));
+            noMicRef.current = !hasMicrophone;
             publish(`/app/calls/${channelId}/join`, { clientId: CLIENT_ID });
+            if (!hasMicrophone) {
+                setMuted(true);
+                pushToast(supported ? listenOnlyReason(micProblem) : INSECURE_LISTEN_ONLY, { tone: "info" });
+            }
             playJoinSound();
-        } catch (err) {
+        } catch {
             cleanUp();
-            const denied = err instanceof DOMException && (err.name === "NotAllowedError" || err.name === "SecurityError");
-            pushToast(denied
-                ? "Accès au micro refusé : autorise-le dans ton navigateur pour appeler."
-                : "Impossible d'utiliser le micro (aucun micro détecté ?).", { tone: "error" });
+            pushToast("Impossible de rejoindre le salon vocal.", { tone: "error" });
         } finally {
             setConnecting(false);
         }
@@ -235,6 +256,11 @@ export function CallProvider({ children }: { children: ReactNode }) {
                 return;
             }
             confirmedRef.current = true;
+            if (noMicRef.current) {
+                // Les autres voient « micro coupé » : je n'envoie pas de son.
+                // Envoyé après la confirmation, pour être sûr que le serveur m'a bien ajouté à l'appel.
+                publish("/app/calls/state", { muted: true, deafened: false, video: false, screen: false });
+            }
             currentRef.current = { channelId: state.channelId, serverId: state.serverId };
             setCurrent(currentRef.current);
             setCalls((all) => applyCallState(all, state));
@@ -385,6 +411,10 @@ export function CallProvider({ children }: { children: ReactNode }) {
         userId === user?.id ? localVideo : remoteStreams[userId] ?? null;
 
     const toggleMute = () => {
+        if (!hasMic) {
+            pushToast("Pas de micro : tu es en écoute seule.", { tone: "info" });
+            return;
+        }
         const nextMuted = !muted;
         // Réactiver le micro réactive aussi le casque (comme Discord).
         const nextDeafened = nextMuted ? deafened : false;
@@ -424,7 +454,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
     }, [cleanUp]);
 
     const value: CallContextValue = {
-        calls, current, connecting, muted, deafened, video, screen, screenShareSupported, speaking, incoming, supported,
+        calls, current, connecting, muted, deafened, video, screen, screenShareSupported, speaking, incoming, supported, hasMic,
         join, leave, toggleMute, toggleDeafen, toggleCamera, toggleScreen, streamOf, acceptIncoming, declineIncoming,
     };
 

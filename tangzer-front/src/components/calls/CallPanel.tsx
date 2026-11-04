@@ -8,7 +8,7 @@ import CallControls from "./CallControls";
 
 /** Bandeau « Connecté au vocal » en bas de la barre latérale. */
 export default function CallPanel() {
-    const { current, calls, connecting } = useCalls();
+    const { current, calls, connecting, hasMic } = useCalls();
     const { getServer } = useServers();
     const { getConversation } = useDms();
 
@@ -30,7 +30,7 @@ export default function CallPanel() {
         <div className="call-panel">
             <div className="call-panel-info">
                 <strong className="call-panel-status" role="status">
-                    <Volume2 size={16} /> {connecting ? "Connexion…" : "Connecté au vocal"}
+                    <Volume2 size={16} /> {connecting ? "Connexion…" : hasMic ? "Connecté au vocal" : "Connecté · écoute seule"}
                 </strong>
                 <Link to={link} className="call-panel-where">
                     {where} · <Users size={14} /> {count}

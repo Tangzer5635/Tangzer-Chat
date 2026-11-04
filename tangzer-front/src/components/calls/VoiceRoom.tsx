@@ -41,7 +41,7 @@ export default function VoiceRoom({ channel }: { channel: Channel }) {
                     )}
                 </div>
                 {!supported && (
-                    <Alert tone="warning">Le micro n'est disponible qu'en HTTPS : ouvre l'application avec https://…</Alert>
+                    <Alert tone="info">Sans HTTPS, le micro n'est pas disponible : tu rejoindras en écoute seule.</Alert>
                 )}
             </div>
         </section>
